@@ -1,0 +1,125 @@
+import time
+from core.device_discovery import discover_devices
+from core.packet_sniffer import capture_traffic
+from core.anomaly_detector import detect_anomalies
+from core.ai_detector import SimpleAutoEncoderDetector
+from core.threat_intel import detect_known_threats, load_signatures
+
+detector = SimpleAutoEncoderDetector()
+
+try:
+    from core.risk_scoring import compute_risk
+    save_risk_snapshot = None
+except Exception:
+    compute_risk = None
+    save_risk_snapshot = None
+
+_CACHE = {"ts": 0, "data": None}
+
+def collect_all(cache_seconds=5):
+    now = time.time()
+
+    # Return cached data (FAST)
+    if _CACHE["data"] is not None and (now - _CACHE["ts"]) < cache_seconds:
+        return _CACHE["data"]
+
+    devices = []
+    traffic = {}
+    anomalies = []
+    risk_summary, risk_by_ip = {}, {}
+
+    try:
+        devices = discover_devices() or []
+    except Exception as e:
+        devices = [{"ip": "N/A", "state": "error", "error": str(e)}]
+
+    try:
+        traffic = capture_traffic(duration=6) or {}
+
+        # ----------- ADDED FOR LOGS PAGE COMPATIBILITY -----------
+        traffic["duration"] = traffic.get("duration_sec", 6)
+        traffic["packets"] = traffic.get("total_packets", 0)
+        traffic["unique_ips"] = len(traffic.get("top_talkers", []))
+        traffic["protocols"] = traffic.get("top_protocols", {})
+        traffic["entries"] = traffic.get("entries", [])
+        # ---------------------------------------------------------
+
+    except Exception as e:
+        traffic = {"duration_sec": 0, "total_packets": 0, "error": str(e), "top_protocols": [], "top_talkers": []}
+
+    known_alerts = []
+    try:
+        known_alerts = detect_known_threats(traffic) or []
+        for k in known_alerts:
+            anomalies.append({
+                "type": k.get("type", "Known Threat"),
+                "severity": (k.get("severity") or "MEDIUM").lower(),
+                "details": k.get("details", "Matched known attack signature"),
+                "source": "threat_intel"
+            })
+    except Exception as e:
+        pass
+
+    try:
+        anomalies += detect_anomalies(traffic, devices) or []
+    except Exception as e:
+        anomalies += [{"type": "Detector error", "severity": "low", "details": str(e)}]
+
+    features = [
+        len(devices),
+        traffic.get("total_packets", 0),
+        len(traffic.get("top_talkers", []))
+    ]
+
+    ai_result = detector.predict(features)
+
+    top = (traffic.get("top_talkers") or [])
+    target_ip = "unknown"
+    if top:
+        first = top[0]
+        if isinstance(first, dict):
+            target_ip = first.get("ip") or first.get("host") or "unknown"
+        elif isinstance(first, (list, tuple)) and len(first) > 0:
+            target_ip = first[0] or "unknown"
+
+    device_name = "Unknown Device"
+    for d in (devices or []):
+        if d.get("ip") == target_ip:
+            device_name = d.get("name") or d.get("hostname") or d.get("mac") or "Unknown Device"
+            break
+
+    if ai_result["anomaly"]:
+        anomalies.append({
+            "type": "AI Behavioral Anomaly",
+            "severity": ai_result["severity"],
+            "ip": target_ip,
+            "device": device_name,
+            "score": ai_result["score"],
+            "details": f"AI anomaly detected on {device_name} ({target_ip})"
+        })
+
+    try:
+        if compute_risk:
+            risk_summary, risk_by_ip = compute_risk(devices, traffic, anomalies)
+            if save_risk_snapshot:
+                save_risk_snapshot(risk_summary, risk_by_ip)
+    except Exception as e:
+        risk_summary = {"overall_score": 0, "overall_level": "LOW", "error": str(e)}
+        risk_by_ip = {}
+
+    # --- FILTER NOISY ALERTS (keep real threats + AI) ---
+    noisy = {"Protocol Dominance", "Single Talker Dominance"}
+    anomalies = [a for a in anomalies if a.get("type") not in noisy]
+
+    data = {
+        "devices": devices,
+        "traffic": traffic,
+        "anomalies": anomalies,
+        "known_alerts": known_alerts,
+        "risk_summary": risk_summary,
+        "risk_by_ip": risk_by_ip,
+    }
+
+    _CACHE["data"] = data
+    _CACHE["ts"] = now
+    return data

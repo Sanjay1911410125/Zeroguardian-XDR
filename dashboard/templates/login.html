@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ZeroGuardian-XDR | Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="zg-auth-body">
+
+  <div class="zg-auth-bg"></div>
+
+  <div class="zg-auth-wrap">
+    <div class="zg-auth-card">
+
+      <h1 class="zg-auth-title">ZeroGuardian-XDR</h1>
+      <p class="zg-auth-sub">Secure XDR Console</p>
+
+      {% if error %}
+      <div class="zg-auth-error">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST" action="/login" class="zg-auth-form">
+        <input type="hidden" name="next" value="{{ next_url }}"/>
+
+        <label class="zg-auth-label">Username or Email</label>
+        <input class="zg-auth-input" name="username" placeholder="admin" required />
+
+        <label class="zg-auth-label">Password</label>
+        <div class="zg-auth-passrow">
+          <input id="pw" class="zg-auth-input zg-auth-input-pass" name="password" type="password" placeholder="••••••••" required />
+
+          <!-- 🛡️ Shield toggle -->
+          <button type="button" class="zg-auth-iconbtn" id="pwToggle" title="Toggle password">
+            <svg viewBox="0 0 24 24" class="zg-auth-svg" aria-hidden="true">
+              <path fill="currentColor" d="M12 2l7 4v6c0 5-3.8 9.4-7 10-3.2-.6-7-5-7-10V6l7-4z"/>
+              <path fill="currentColor" d="M12 10.8a2.2 2.2 0 1 0 0 4.4 2.2 2.2 0 0 0 0-4.4z"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="zg-auth-row">
+          <label class="zg-auth-check">
+            <input type="checkbox" name="remember"/>
+            <span>Remember me</span>
+          </label>
+
+          <a class="zg-auth-link" href="/forgot-password">Forgot password?</a>
+        </div>
+
+        <button class="zg-auth-btn" type="submit">Enter Secure Console</button>
+      </form>
+
+    </div>
+  </div>
+
+  <script>
+    const pw = document.getElementById("pw");
+    const t = document.getElementById("pwToggle");
+    t.addEventListener("click", () => {
+      pw.type = (pw.type === "password") ? "text" : "password";
+    });
+  </script>
+</body>
+</html>

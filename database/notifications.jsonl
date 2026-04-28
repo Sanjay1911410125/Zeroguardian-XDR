@@ -1,0 +1,256 @@
+{"ts": 1771740506, "level": "LOW", "title": "Failed login", "message": "Failed login attempt for user: admin", "meta": {}}
+{"ts": 1771740517, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1771740557, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771740557, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771740573, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771740573, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771740573, "level": "HIGH", "title": "Anomaly detected", "message": "Single Talker Dominance on unknown (HIGH)", "meta": {"ip": "unknown", "severity": "HIGH"}}
+{"ts": 1771740664, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771740664, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771740664, "level": "HIGH", "title": "Anomaly detected", "message": "Single Talker Dominance on unknown (HIGH)", "meta": {"ip": "unknown", "severity": "HIGH"}}
+{"ts": 1771741048, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1771741090, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771741090, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771741090, "level": "HIGH", "title": "Anomaly detected", "message": "Single Talker Dominance on unknown (HIGH)", "meta": {"ip": "unknown", "severity": "HIGH"}}
+{"ts": 1771741105, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771741933, "level": "INFO", "title": "Logout", "message": "admin signed out.", "meta": {}}
+{"ts": 1771742764, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1771742843, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771742843, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on system (MEDIUM)", "meta": {"ip": "system", "severity": "MEDIUM"}}
+{"ts": 1771742843, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771742843, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on system (MEDIUM)", "meta": {"ip": "system", "severity": "MEDIUM"}}
+{"ts": 1771742933, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771742933, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on system (MEDIUM)", "meta": {"ip": "system", "severity": "MEDIUM"}}
+{"ts": 1771743116, "level": "INFO", "title": "Logout", "message": "admin signed out.", "meta": {}}
+{"ts": 1771743119, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1771743163, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743163, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743163, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743207, "level": "HIGH", "title": "Anomaly detected", "message": "High Packet Rate on unknown (HIGH)", "meta": {"ip": "unknown", "severity": "HIGH"}}
+{"ts": 1771743207, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743207, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743211, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743211, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743211, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743225, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743225, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743225, "level": "HIGH", "title": "Anomaly detected", "message": "Single Talker Dominance on unknown (HIGH)", "meta": {"ip": "unknown", "severity": "HIGH"}}
+{"ts": 1771743251, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1771743253, "level": "HIGH", "title": "Anomaly detected", "message": "High Packet Rate on unknown (HIGH)", "meta": {"ip": "unknown", "severity": "HIGH"}}
+{"ts": 1771743253, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743253, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743273, "level": "MEDIUM", "title": "Anomaly detected", "message": "Talker Concentration on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743273, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on system (MEDIUM)", "meta": {"ip": "system", "severity": "MEDIUM"}}
+{"ts": 1771743277, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771743277, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on system (MEDIUM)", "meta": {"ip": "system", "severity": "MEDIUM"}}
+{"ts": 1771743389, "level": "HIGH", "title": "Anomaly detected", "message": "High Packet Rate on unknown (HIGH)", "meta": {"ip": "unknown", "severity": "HIGH"}}
+{"ts": 1771743389, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743389, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771743622, "level": "INFO", "title": "Logout", "message": "admin signed out.", "meta": {}}
+{"ts": 1771743929, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1771743994, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771743994, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.207 (MEDIUM)", "meta": {"ip": "10.105.22.207", "severity": "MEDIUM"}}
+{"ts": 1771743994, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771743994, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.207 (MEDIUM)", "meta": {"ip": "10.105.22.207", "severity": "MEDIUM"}}
+{"ts": 1771744016, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771744016, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.199 (MEDIUM)", "meta": {"ip": "10.105.22.199", "severity": "MEDIUM"}}
+{"ts": 1771744129, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771744129, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771744129, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771744145, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771744145, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771744211, "level": "INFO", "title": "Logout", "message": "admin signed out.", "meta": {}}
+{"ts": 1771744561, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1771744590, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771744590, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771744590, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771744630, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771744630, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.199 (MEDIUM)", "meta": {"ip": "10.105.22.199", "severity": "MEDIUM"}}
+{"ts": 1771744787, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771744787, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.76 (MEDIUM)", "meta": {"ip": "10.105.22.76", "severity": "MEDIUM"}}
+{"ts": 1771746088, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1771746310, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1771746371, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771746371, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.207 (MEDIUM)", "meta": {"ip": "10.105.22.207", "severity": "MEDIUM"}}
+{"ts": 1771746404, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771746404, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771833505, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1771833586, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771833586, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.207 (MEDIUM)", "meta": {"ip": "10.105.22.207", "severity": "MEDIUM"}}
+{"ts": 1771833667, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771833667, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771833667, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771833672, "level": "HIGH", "title": "Anomaly detected", "message": "High Packet Rate on unknown (HIGH)", "meta": {"ip": "unknown", "severity": "HIGH"}}
+{"ts": 1771833672, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771833672, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771833685, "level": "HIGH", "title": "Anomaly detected", "message": "High Packet Rate on unknown (HIGH)", "meta": {"ip": "unknown", "severity": "HIGH"}}
+{"ts": 1771833685, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771833685, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771833689, "level": "HIGH", "title": "Anomaly detected", "message": "High Packet Rate on unknown (HIGH)", "meta": {"ip": "unknown", "severity": "HIGH"}}
+{"ts": 1771833689, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771833689, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771833693, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771833693, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771833693, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771833705, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771833705, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.207 (MEDIUM)", "meta": {"ip": "10.105.22.207", "severity": "MEDIUM"}}
+{"ts": 1771834072, "level": "INFO", "title": "Logout", "message": "admin signed out.", "meta": {}}
+{"ts": 1771998899, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1771998979, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771998979, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.118 (MEDIUM)", "meta": {"ip": "192.168.68.118", "severity": "MEDIUM"}}
+{"ts": 1771998990, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771998990, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771999502, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771999502, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1771999592, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1771999592, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772003996, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772004026, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772004026, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772004054, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772004054, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772004141, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772004141, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.119 (MEDIUM)", "meta": {"ip": "192.168.68.119", "severity": "MEDIUM"}}
+{"ts": 1772004257, "level": "HIGH", "title": "Anomaly detected", "message": "High Packet Rate on unknown (HIGH)", "meta": {"ip": "unknown", "severity": "HIGH"}}
+{"ts": 1772004257, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772004257, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772004317, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772004317, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.128 (MEDIUM)", "meta": {"ip": "192.168.68.128", "severity": "MEDIUM"}}
+{"ts": 1772021421, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772021451, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772021451, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.207 (MEDIUM)", "meta": {"ip": "10.105.22.207", "severity": "MEDIUM"}}
+{"ts": 1772021600, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772021600, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772023941, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772023958, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772023958, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772029088, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772029108, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772029108, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.207 (MEDIUM)", "meta": {"ip": "10.105.22.207", "severity": "MEDIUM"}}
+{"ts": 1772029128, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772029128, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.199 (MEDIUM)", "meta": {"ip": "10.105.22.199", "severity": "MEDIUM"}}
+{"ts": 1772029149, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772029149, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772029274, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772029274, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.199 (MEDIUM)", "meta": {"ip": "10.105.22.199", "severity": "MEDIUM"}}
+{"ts": 1772029312, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772029312, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.199 (MEDIUM)", "meta": {"ip": "10.105.22.199", "severity": "MEDIUM"}}
+{"ts": 1772030340, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772030390, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772030390, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.207 (MEDIUM)", "meta": {"ip": "10.105.22.207", "severity": "MEDIUM"}}
+{"ts": 1772030930, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772030938, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772030938, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.207 (MEDIUM)", "meta": {"ip": "10.105.22.207", "severity": "MEDIUM"}}
+{"ts": 1772030990, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772030990, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.76 (MEDIUM)", "meta": {"ip": "10.105.22.76", "severity": "MEDIUM"}}
+{"ts": 1772030990, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772030990, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.207 (MEDIUM)", "meta": {"ip": "10.105.22.207", "severity": "MEDIUM"}}
+{"ts": 1772031061, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772031061, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.76 (MEDIUM)", "meta": {"ip": "10.105.22.76", "severity": "MEDIUM"}}
+{"ts": 1772031879, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772031894, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772031894, "level": "HIGH", "title": "Anomaly detected", "message": "Single Talker Dominance on unknown (HIGH)", "meta": {"ip": "unknown", "severity": "HIGH"}}
+{"ts": 1772031894, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.76 (MEDIUM)", "meta": {"ip": "10.105.22.76", "severity": "MEDIUM"}}
+{"ts": 1772031924, "level": "MEDIUM", "title": "Anomaly detected", "message": "Protocol Dominance on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772031924, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.236 (MEDIUM)", "meta": {"ip": "10.105.22.236", "severity": "MEDIUM"}}
+{"ts": 1772031943, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772031943, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.236 (MEDIUM)", "meta": {"ip": "10.105.22.236", "severity": "MEDIUM"}}
+{"ts": 1772078924, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772078991, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772078991, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.101 (MEDIUM)", "meta": {"ip": "192.168.68.101", "severity": "MEDIUM"}}
+{"ts": 1772079061, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772079061, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.1 (MEDIUM)", "meta": {"ip": "192.168.68.1", "severity": "MEDIUM"}}
+{"ts": 1772079282, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772079282, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.105 (MEDIUM)", "meta": {"ip": "192.168.68.105", "severity": "MEDIUM"}}
+{"ts": 1772080207, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772080280, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772080280, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.101 (MEDIUM)", "meta": {"ip": "192.168.68.101", "severity": "MEDIUM"}}
+{"ts": 1772080280, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772080280, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.101 (MEDIUM)", "meta": {"ip": "192.168.68.101", "severity": "MEDIUM"}}
+{"ts": 1772080280, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772080280, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.101 (MEDIUM)", "meta": {"ip": "192.168.68.101", "severity": "MEDIUM"}}
+{"ts": 1772080301, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772080301, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 224.0.0.251 (MEDIUM)", "meta": {"ip": "224.0.0.251", "severity": "MEDIUM"}}
+{"ts": 1772081282, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772081339, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772081339, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.101 (MEDIUM)", "meta": {"ip": "192.168.68.101", "severity": "MEDIUM"}}
+{"ts": 1772081339, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772081339, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.101 (MEDIUM)", "meta": {"ip": "192.168.68.101", "severity": "MEDIUM"}}
+{"ts": 1772081360, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772081360, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772081391, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772081391, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772081547, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772081547, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.105 (MEDIUM)", "meta": {"ip": "192.168.68.105", "severity": "MEDIUM"}}
+{"ts": 1772081697, "level": "INFO", "title": "Logout", "message": "admin signed out.", "meta": {}}
+{"ts": 1772081903, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772081913, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772081913, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.107 (MEDIUM)", "meta": {"ip": "192.168.68.107", "severity": "MEDIUM"}}
+{"ts": 1772082297, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772082298, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772082298, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.104 (MEDIUM)", "meta": {"ip": "192.168.68.104", "severity": "MEDIUM"}}
+{"ts": 1772082322, "level": "MEDIUM", "title": "Anomaly detected", "message": "Talker Concentration on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772082322, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.104 (MEDIUM)", "meta": {"ip": "192.168.68.104", "severity": "MEDIUM"}}
+{"ts": 1772082323, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772082323, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.104 (MEDIUM)", "meta": {"ip": "192.168.68.104", "severity": "MEDIUM"}}
+{"ts": 1772083269, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772083270, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772083326, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772083326, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.101 (MEDIUM)", "meta": {"ip": "192.168.68.101", "severity": "MEDIUM"}}
+{"ts": 1772083326, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772083326, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.101 (MEDIUM)", "meta": {"ip": "192.168.68.101", "severity": "MEDIUM"}}
+{"ts": 1772083326, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772083326, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.101 (MEDIUM)", "meta": {"ip": "192.168.68.101", "severity": "MEDIUM"}}
+{"ts": 1772083353, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772083353, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.1 (MEDIUM)", "meta": {"ip": "192.168.68.1", "severity": "MEDIUM"}}
+{"ts": 1772084518, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772084548, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772084548, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772084549, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772084549, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.104 (MEDIUM)", "meta": {"ip": "192.168.68.104", "severity": "MEDIUM"}}
+{"ts": 1772084590, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772084590, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772084634, "level": "MEDIUM", "title": "Anomaly detected", "message": "Talker Concentration on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772084634, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.101 (MEDIUM)", "meta": {"ip": "192.168.68.101", "severity": "MEDIUM"}}
+{"ts": 1772089113, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772089137, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772089137, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772089155, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772089155, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 255.255.255.255 (MEDIUM)", "meta": {"ip": "255.255.255.255", "severity": "MEDIUM"}}
+{"ts": 1772089659, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772089659, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 239.255.255.250 (MEDIUM)", "meta": {"ip": "239.255.255.250", "severity": "MEDIUM"}}
+{"ts": 1772089808, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772089808, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.104 (MEDIUM)", "meta": {"ip": "192.168.68.104", "severity": "MEDIUM"}}
+{"ts": 1772089812, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772089830, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772089830, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.1 (MEDIUM)", "meta": {"ip": "192.168.68.1", "severity": "MEDIUM"}}
+{"ts": 1772090212, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772090215, "level": "MEDIUM", "title": "Anomaly detected", "message": "Talker Concentration on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772090215, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.104 (MEDIUM)", "meta": {"ip": "192.168.68.104", "severity": "MEDIUM"}}
+{"ts": 1772090231, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772090231, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 192.168.68.117 (MEDIUM)", "meta": {"ip": "192.168.68.117", "severity": "MEDIUM"}}
+{"ts": 1772109201, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772109221, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772109221, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.207 (MEDIUM)", "meta": {"ip": "10.105.22.207", "severity": "MEDIUM"}}
+{"ts": 1772109299, "level": "MEDIUM", "title": "Anomaly detected", "message": "Talker Concentration on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772109299, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.207 (MEDIUM)", "meta": {"ip": "10.105.22.207", "severity": "MEDIUM"}}
+{"ts": 1772109561, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772109567, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772109567, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772109601, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772109601, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.236 (MEDIUM)", "meta": {"ip": "10.105.22.236", "severity": "MEDIUM"}}
+{"ts": 1772109601, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772109601, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.236 (MEDIUM)", "meta": {"ip": "10.105.22.236", "severity": "MEDIUM"}}
+{"ts": 1772109623, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772109623, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772109656, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772109656, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.207 (MEDIUM)", "meta": {"ip": "10.105.22.207", "severity": "MEDIUM"}}
+{"ts": 1772109701, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772109701, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.207 (MEDIUM)", "meta": {"ip": "10.105.22.207", "severity": "MEDIUM"}}
+{"ts": 1772110011, "level": "INFO", "title": "Login successful", "message": "admin signed in.", "meta": {}}
+{"ts": 1772110026, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772110026, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772110035, "level": "MEDIUM", "title": "Anomaly detected", "message": "Elevated Packet Rate on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772110035, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on unknown (MEDIUM)", "meta": {"ip": "unknown", "severity": "MEDIUM"}}
+{"ts": 1772110045, "level": "MEDIUM", "title": "Anomaly detected", "message": "No Significant Anomaly on unknown (LOW)", "meta": {"ip": "unknown", "severity": "LOW"}}
+{"ts": 1772110045, "level": "MEDIUM", "title": "Anomaly detected", "message": "AI Behavioral Anomaly on 10.105.22.236 (MEDIUM)", "meta": {"ip": "10.105.22.236", "severity": "MEDIUM"}}

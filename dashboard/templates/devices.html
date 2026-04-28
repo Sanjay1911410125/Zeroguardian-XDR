@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+{% set title="ZeroGuardian-XDR | Devices" %}
+{% set header="Devices" %}
+
+{% block content %}
+<div class="zg-row" style="align-items:flex-start; gap:14px;">
+
+  <!-- LEFT: Main -->
+  <div style="flex: 1; min-width: 640px;">
+    <!-- Header + Actions -->
+    <div class="zg-card zg-pad" style="margin-bottom:14px;">
+      <div class="zg-row" style="align-items:center;">
+        <div>
+          <div class="zg-title2">Device Inventory</div>
+          <div class="zg-s">Real-time LAN discovery • hostname enrichment • graph view</div>
+        </div>
+        <div class="zg-row" style="gap:10px;">
+          <button class="zg-btn" id="btnRefresh">↻ Refresh</button>
+          <a class="zg-link" href="/">← Back</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="zg-row" style="gap:14px; flex-wrap:wrap; margin-bottom:14px;">
+      <div class="zg-card zg-pad" style="flex:1; min-width:180px;">
+        <div class="zg-s">Total Devices</div>
+        <div class="zg-title2" id="mTotal">—</div>
+      </div>
+      <div class="zg-card zg-pad" style="flex:1; min-width:180px;">
+        <div class="zg-s">Observed</div>
+        <div class="zg-title2" id="mObserved">—</div>
+      </div>
+      <div class="zg-card zg-pad" style="flex:1; min-width:180px;">
+        <div class="zg-s">Gateway</div>
+        <div class="zg-title2" id="mGateway">—</div>
+      </div>
+      <div class="zg-card zg-pad" style="flex:1; min-width:180px;">
+        <div class="zg-s">Unknown Names</div>
+        <div class="zg-title2" id="mUnknown">—</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="zg-card zg-pad" style="margin-bottom:14px;">
+      <div class="zg-row" style="gap:10px; flex-wrap:wrap;">
+        <input id="q" class="zg-input" placeholder="Search name / IP / MAC / state…" style="flex:1; min-width:240px;">
+        <select id="filterState" class="zg-input" style="min-width:180px;">
+          <option value="all">All States</option>
+          <option value="self">Self</option>
+          <option value="gateway">Gateway</option>
+          <option value="observed">Observed</option>
+          <option value="lan">LAN</option>
+          <option value="unknown">Unknown Name</option>
+        </select>
+        <select id="sortBy" class="zg-input" style="min-width:180px;">
+          <option value="ip">Sort: IP</option>
+          <option value="name">Sort: Name</option>
+          <option value="state">Sort: State</option>
+        </select>
+      </div>
+      <div class="zg-s" style="margin-top:8px;">
+        Tip: click a row or a node in the graph to open device details → copy IP/MAC quickly.
+      </div>
+    </div>
+
+    <!-- Graph + Table -->
+    <div class="zg-row" style="gap:14px; align-items:stretch; flex-wrap:wrap;">
+      <!-- Graph -->
+      <div class="zg-card zg-pad" style="flex:1; min-width:420px;">
+        <div class="zg-row">
+          <div class="zg-title2">Network Graph</div>
+          <div class="zg-s">click nodes to inspect</div>
+        </div>
+        <div id="netGraph" style="height:360px; border-radius:14px; background: rgba(0,0,0,0.20); border: 1px solid rgba(255,255,255,0.08); margin-top:10px;"></div>
+      </div>
+
+      <!-- Table -->
+      <div class="zg-card zg-pad" style="flex:1.2; min-width:520px;">
+        <div class="zg-row">
+          <div class="zg-title2">Discovered Devices</div>
+          <div class="zg-s"><span id="shownCount">0</span> shown</div>
+        </div>
+
+        <div class="zg-tablewrap" style="margin-top:10px;">
+          <table class="zg-table" id="devTable">
+            <thead>
+              <tr>
+                <th style="min-width:190px;">Device Name</th>
+                <th style="min-width:160px;">IP</th>
+                <th style="min-width:180px;">MAC</th>
+                <th style="min-width:130px;">State</th>
+                <th style="min-width:120px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="devTbody">
+              <tr><td colspan="5" class="zg-muted">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Details Drawer -->
+  <div style="width: 360px; min-width: 320px;">
+    <div class="zg-card zg-pad" id="drawer">
+      <div class="zg-row" style="align-items:center;">
+        <div>
+          <div class="zg-title2" id="dTitle">Device Details</div>
+          <div class="zg-s" id="dSub">Select a device from the table or graph.</div>
+        </div>
+        <button class="zg-btn" id="btnClose">✕</button>
+      </div>
+
+      <div style="height:10px;"></div>
+
+      <div class="zg-card zg-pad" style="background: rgba(0,0,0,0.18); border: 1px solid rgba(255,255,255,0.08);">
+        <div class="zg-s">Name</div>
+        <div class="zg-title2" id="dName" style="margin-top:4px;">—</div>
+        <div style="height:10px;"></div>
+
+        <div class="zg-row" style="gap:10px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:140px;">
+            <div class="zg-s">IP Address</div>
+            <div class="zg-mono" id="dIp">—</div>
+          </div>
+          <div style="flex:1; min-width:140px;">
+            <div class="zg-s">MAC Address</div>
+            <div class="zg-mono" id="dMac">—</div>
+          </div>
+        </div>
+
+        <div style="height:10px;"></div>
+
+        <div class="zg-row" style="gap:10px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:140px;">
+            <div class="zg-s">State</div>
+            <div id="dState">—</div>
+          </div>
+          <div style="flex:1; min-width:140px;">
+            <div class="zg-s">Notes</div>
+            <div class="zg-s" id="dNote">—</div>
+          </div>
+        </div>
+
+        <div style="height:12px;"></div>
+
+        <div class="zg-row" style="gap:10px;">
+          <button class="zg-btn" id="copyIp">Copy IP</button>
+          <button class="zg-btn" id="copyMac">Copy MAC</button>
+        </div>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <div class="zg-s">
+        Future upgrades (easy): per-device traffic stats, risk badge, open ports (nmap), vendor from MAC (OUI).
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- vis-network (CDN) -->
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+<script>
+  // Data injected from Flask
+  const RAW_DEVICES = {{ (devices or []) | tojson }};
+
+  const $ = (id) => document.getElementById(id);
+
+  const stateBadgeClass = (state) => {
+    const s = String(state || "").toLowerCase();
+    if (s === "self") return "ok";
+    if (s === "gateway") return "medium";
+    if (s === "observed") return "low";
+    if (s === "lan") return "low";
+    return "low";
+  };
+
+  const normalize = (d) => ({
+    ip: d.ip || "",
+    name: d.name || "Unknown Device",
+    mac: d.mac || "",
+    state: d.state || "observed"
+  });
+
+  let devices = RAW_DEVICES.map(normalize);
+
+  // ----- Metrics -----
+  function updateMetrics(list) {
+    const total = list.length;
+    const observed = list.filter(x => String(x.state).toLowerCase() === "observed").length;
+    const gateway = list.filter(x => String(x.state).toLowerCase() === "gateway").length;
+    const unknown = list.filter(x => String(x.name).toLowerCase().includes("unknown")).length;
+
+    $("mTotal").textContent = total;
+    $("mObserved").textContent = observed;
+    $("mGateway").textContent = gateway;
+    $("mUnknown").textContent = unknown;
+  }
+
+  // ----- Filtering / Sorting -----
+  function applyView() {
+    const q = ($("q").value || "").trim().toLowerCase();
+    const f = $("filterState").value;
+    const sortBy = $("sortBy").value;
+
+    let list = devices.slice();
+
+    if (q) {
+      list = list.filter(d =>
+        (d.ip || "").toLowerCase().includes(q) ||
+        (d.mac || "").toLowerCase().includes(q) ||
+        (d.name || "").toLowerCase().includes(q) ||
+        (d.state || "").toLowerCase().includes(q)
+      );
+    }
+
+    if (f !== "all") {
+      if (f === "unknown") {
+        list = list.filter(d => String(d.name || "").toLowerCase().includes("unknown"));
+      } else {
+        list = list.filter(d => String(d.state || "").toLowerCase() === f);
+      }
+    }
+
+    list.sort((a, b) => {
+      const A = String(a[sortBy] || "").toLowerCase();
+      const B = String(b[sortBy] || "").toLowerCase();
+      if (A < B) return -1;
+      if (A > B) return 1;
+      return 0;
+    });
+
+    $("shownCount").textContent = list.length;
+    renderTable(list);
+    renderGraph(list);
+    updateMetrics(devices); // overall metrics from full list
+  }
+
+  // ----- Table -----
+  function renderTable(list) {
+    const tbody = $("devTbody");
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="5" class="zg-muted">No devices match your search.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = list.map((d, idx) => {
+      const badge = stateBadgeClass(d.state);
+      const safeMac = d.mac ? d.mac : "—";
+      return `
+        <tr class="dev-row" data-ip="${d.ip}">
+          <td style="font-weight:700;">${escapeHtml(d.name)}</td>
+          <td class="zg-mono">${escapeHtml(d.ip)}</td>
+          <td class="zg-mono">${escapeHtml(safeMac)}</td>
+          <td><span class="zg-badge ${badge}">${escapeHtml(d.state)}</span></td>
+          <td><button class="zg-btn sm" data-open="${d.ip}">View</button></td>
+        </tr>
+      `;
+    }).join("");
+
+    // Row click + button click
+    tbody.querySelectorAll("tr.dev-row").forEach(row => {
+      row.addEventListener("click", () => openDetails(row.getAttribute("data-ip")));
+    });
+    tbody.querySelectorAll("button[data-open]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openDetails(btn.getAttribute("data-open"));
+      });
+    });
+  }
+
+  // ----- Graph -----
+  let network = null;
+
+  function renderGraph(list) {
+    const container = $("netGraph");
+
+    // choose a hub: gateway if available else self else first device
+    const gw = devices.find(d => String(d.state).toLowerCase() === "gateway");
+    const self = devices.find(d => String(d.state).toLowerCase() === "self");
+    const hub = gw || self || list[0] || { ip: "hub", name: "Network", state: "gateway" };
+
+    const nodes = [];
+    const edges = [];
+
+    // hub node
+    nodes.push({
+      id: hub.ip,
+      label: hub.name ? `${hub.name}\n${hub.ip}` : hub.ip,
+      shape: "dot",
+      size: 22
+    });
+
+    // other nodes
+    list.forEach(d => {
+      if (!d.ip || d.ip === hub.ip) return;
+      nodes.push({
+        id: d.ip,
+        label: `${d.name}\n${d.ip}`,
+        shape: "dot",
+        size: (String(d.state).toLowerCase() === "self") ? 18 : 14
+      });
+      edges.push({ from: hub.ip, to: d.ip });
+    });
+
+    const data = {
+      nodes: new vis.DataSet(nodes),
+      edges: new vis.DataSet(edges)
+    };
+
+    const options = {
+      interaction: { hover: true },
+      physics: {
+        stabilization: false,
+        barnesHut: { gravitationalConstant: -6000, springLength: 140 }
+      },
+      nodes: {
+        font: { color: "#cfefff" },
+        borderWidth: 1
+      },
+      edges: {
+        smooth: true
+      }
+    };
+
+    if (network) {
+      network.setData(data);
+      return;
+    }
+
+    network = new vis.Network(container, data, options);
+
+    network.on("click", (params) => {
+      const id = params.nodes && params.nodes.length ? params.nodes[0] : null;
+      if (id) openDetails(id);
+    });
+  }
+
+  // ----- Details Drawer -----
+  function openDetails(ip) {
+    const d = devices.find(x => x.ip === ip);
+    if (!d) return;
+
+    $("dName").textContent = d.name || "Unknown Device";
+    $("dIp").textContent = d.ip || "—";
+    $("dMac").textContent = d.mac || "—";
+    $("dState").innerHTML = `<span class="zg-badge ${stateBadgeClass(d.state)}">${escapeHtml(d.state)}</span>`;
+
+    let note = "";
+    const s = String(d.state || "").toLowerCase();
+    if (s === "self") note = "This machine running ZeroGuardian-XDR.";
+    else if (s === "gateway") note = "Default gateway/router detected via route table.";
+    else if (String(d.name || "").toLowerCase().includes("unknown")) note = "Hostname not advertised on LAN (normal on hotspots).";
+    else note = "Resolved via DNS/Nmap/neighbor table.";
+
+    $("dNote").textContent = note;
+    $("dSub").textContent = "Selected: " + (d.ip || "");
+
+    // copy buttons
+    $("copyIp").onclick = () => copyText(d.ip || "");
+    $("copyMac").onclick = () => copyText(d.mac || "");
+
+    // highlight selection in graph (if exists)
+    if (network) {
+      network.selectNodes([d.ip]);
+      network.focus(d.ip, { scale: 1.1, animation: true });
+    }
+  }
+
+  function copyText(txt) {
+    if (!txt) return;
+    navigator.clipboard.writeText(txt).catch(() => {});
+  }
+
+  function escapeHtml(s) {
+    return String(s || "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  // ----- Events -----
+  $("q").addEventListener("input", applyView);
+  $("filterState").addEventListener("change", applyView);
+  $("sortBy").addEventListener("change", applyView);
+
+  $("btnRefresh").addEventListener("click", () => {
+    // simplest refresh: reload page (uses existing /devices route)
+    window.location.reload();
+  });
+
+  $("btnClose").addEventListener("click", () => {
+    $("dName").textContent = "—";
+    $("dIp").textContent = "—";
+    $("dMac").textContent = "—";
+    $("dState").textContent = "—";
+    $("dNote").textContent = "—";
+    $("dSub").textContent = "Select a device from the table or graph.";
+    if (network) network.unselectAll();
+  });
+
+  // Init
+  updateMetrics(devices);
+  applyView();
+</script>
+
+<style>
+  /* Small helper: compact button */
+  .zg-btn.sm{
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+    border-radius: 10px !important;
+  }
+  /* Mono style fallback if not present in base */
+  .zg-mono{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 12.5px;
+    opacity: 0.95;
+  }
+.zg-input {
+  color: #e6faff !important;
+  background: rgba(0,0,0,0.35) !important;
+}
+
+.zg-input::placeholder {
+  color: rgba(230,250,255,0.6) !important;
+}
+
+select.zg-input {
+  color: #e6faff !important;
+}
+</style>
+{% endblock %}

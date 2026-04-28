@@ -1,0 +1,271 @@
+# dashboard/app.py
+import os, json, time, random
+from functools import wraps
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, abort
+from werkzeug.security import generate_password_hash, check_password_hash
+from core.orchestrator import collect_all
+
+app = Flask(__name__)
+app.secret_key = os.getenv("ZG_SECRET_KEY", "ZEROGUARDIAN_XDR_DEV_SECRET_CHANGE_ME")
+
+# ------------------ PATHS ------------------
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+USERS_FILE = os.path.join(BASE_DIR, "database", "users.json")
+
+# ------------------ SIMPLE USER DB ------------------
+def load_users():
+    os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
+    if not os.path.exists(USERS_FILE):
+        with open(USERS_FILE, "w") as f:
+            json.dump({}, f, indent=2)
+    with open(USERS_FILE, "r") as f:
+        return json.load(f)
+
+def save_users(data):
+    os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
+    with open(USERS_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+def ensure_default_admin():
+    users = load_users()
+    if "admin" not in users:
+        users["admin"] = {
+            "email": "admin@example.com",
+            "role": "admin",
+            "password_hash": generate_password_hash("admin123"),
+        }
+        save_users(users)
+    else:
+        changed = False
+        if not users["admin"].get("role"):
+            users["admin"]["role"] = "admin"
+            changed = True
+        if not users["admin"].get("password_hash"):
+            users["admin"]["password_hash"] = generate_password_hash("admin123")
+            changed = True
+        if changed:
+            save_users(users)
+
+ensure_default_admin()
+
+def is_admin():
+    u = session.get("username")
+    users = load_users()
+    return bool(u and u in users and users[u].get("role") == "admin")
+
+def admin_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not session.get("logged_in"):
+            return redirect(url_for("login", next=request.path))
+        if not is_admin():
+            abort(403)
+        return f(*args, **kwargs)
+    return wrapper
+
+# ------------------ SMTP CONFIG (optional: real email OTP) ------------------
+# Set env vars:
+# ZG_SMTP_HOST, ZG_SMTP_PORT, ZG_SMTP_USER, ZG_SMTP_PASS, ZG_SMTP_TLS=1
+SMTP_HOST = os.getenv("ZG_SMTP_HOST", "")
+SMTP_PORT = int(os.getenv("ZG_SMTP_PORT", "587"))
+SMTP_USER = os.getenv("ZG_SMTP_USER", "")
+SMTP_PASS = os.getenv("ZG_SMTP_PASS", "")
+SMTP_TLS  = os.getenv("ZG_SMTP_TLS", "1") == "1"
+
+def send_otp_email(to_email, otp):
+    """
+    Real email send if SMTP configured.
+    If not configured => prints OTP in terminal (dev/demo mode).
+    """
+    if not (SMTP_HOST and SMTP_USER and SMTP_PASS):
+        print(f"[DEV MODE OTP] OTP for {to_email} = {otp}")
+        return False
+
+    import smtplib
+    from email.mime.text import MIMEText
+
+    msg = MIMEText(f"Your ZeroGuardian-XDR OTP is: {otp}\n\nValid for 5 minutes.")
+    msg["Subject"] = "ZeroGuardian-XDR OTP"
+    msg["From"] = SMTP_USER
+    msg["To"] = to_email
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
+        if SMTP_TLS:
+            server.starttls()
+        server.login(SMTP_USER, SMTP_PASS)
+        server.send_message(msg)
+    return True
+
+# ------------------ AUTH DECORATOR (MUST BE ABOVE USAGE) ------------------
+def login_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not session.get("logged_in"):
+            return redirect(url_for("login", next=request.path))
+        return fn(*args, **kwargs)
+    return wrapper
+
+# ------------------ HELPERS ------------------
+def _slice_devices(devs, limit=30):
+    return (devs or [])[:limit]
+
+# ------------------ REAL-TIME NOTIFICATIONS (simple in-memory) ------------------
+# NOTE: for final-year demo this is enough. Later can move to DB.
+NOTIF_STORE = []  # list of dicts
+
+def push_notif(level, title, message, meta=None):
+    NOTIF_STORE.append({
+        "ts": int(time.time()),
+        "level": level,               # INFO / LOW / MEDIUM / HIGH / CRITICAL
+        "title": title,
+        "message": message,
+        "meta": meta or {},
+    })
+    # keep store small
+    if len(NOTIF_STORE) > 200:
+        del NOTIF_STORE[:50]
+
+@app.route("/api/notifications")
+@login_required
+def api_notifications():
+    since = int(request.args.get("since", "0") or "0")
+    items = [n for n in NOTIF_STORE if n.get("ts", 0) > since]
+    last_ts = items[-1]["ts"] if items else since
+    return jsonify({"last_ts": last_ts, "items": items})
+
+# ------------------ LOGIN ------------------
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if session.get("logged_in"):
+        return redirect(url_for("dashboard"))
+
+    error = None
+    next_url = request.args.get("next", "/")
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
+
+        users = load_users()
+        u = users.get(username)
+
+        if u and u.get("password_hash") and check_password_hash(u["password_hash"], password):
+            session["logged_in"] = True
+            session["username"] = username
+            push_notif("INFO", "Login successful", f"{username} signed in.")
+            return redirect(next_url if next_url else url_for("dashboard"))
+        else:
+            error = "Invalid username or password"
+            push_notif("LOW", "Failed login", f"Failed login attempt for user: {username}")
+
+    return render_template("login.html", error=error, next_url=next_url)
+
+@app.route("/logout")
+@login_required
+def logout():
+    user = session.get("username", "unknown")
+    session.clear()
+    push_notif("INFO", "Logout", f"{user} signed out.")
+    return redirect(url_for("login"))
+
+# ------------------ FORGOT PASSWORD (OTP FLOW) ------------------
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    msg = None
+    error = None
+
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        users = load_users()
+
+        username = None
+        for uname, data in users.items():
+            if (data.get("email") or "").lower() == email:
+                username = uname
+                break
+
+        if not username:
+            error = "Email not found. Please check and try again."
+            return render_template("forgot_password.html", error=error, msg=msg)
+
+        otp = str(random.randint(100000, 999999))
+        session["otp_user"] = username
+        session["otp_code"] = otp
+        session["otp_ts"] = int(time.time())
+
+        sent = send_otp_email(email, otp)
+        if sent:
+            msg = "OTP sent to your email. Please check your inbox."
+        else:
+            msg = "OTP generated. (Dev mode: OTP shown in terminal.)"
+
+        return redirect(url_for("verify_otp", info="1"))
+
+    return render_template("forgot_password.html", error=error, msg=msg)
+
+@app.route("/verify-otp", methods=["GET", "POST"])
+def verify_otp():
+    error = None
+    msg = "Enter the 6-digit OTP (valid for 5 minutes)." if request.args.get("info") == "1" else None
+
+    if request.method == "POST":
+        otp_in = request.form.get("otp", "").strip()
+        otp_code = session.get("otp_code")
+        otp_ts = int(session.get("otp_ts", 0) or 0)
+
+        if not otp_code:
+            return redirect(url_for("forgot_password"))
+
+        if int(time.time()) - otp_ts > 300:
+            session.pop("otp_code", None)
+            session.pop("otp_ts", None)
+            error = "OTP expired. Please request again."
+            return render_template("verify_otp.html", error=error, msg=msg)
+
+        if otp_in == otp_code:
+            session["otp_verified"] = True
+            return redirect(url_for("reset_password"))
+        else:
+            error = "Invalid OTP. Try again."
+
+    return render_template("verify_otp.html", error=error, msg=msg)
+
+@app.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+    error = None
+
+    if not session.get("otp_verified") or not session.get("otp_user"):
+        return redirect(url_for("forgot_password"))
+
+    if request.method == "POST":
+        p1 = request.form.get("new_password", "")
+        p2 = request.form.get("confirm_password", "")
+
+        if len(p1) < 6:
+            error = "Password must be at least 6 characters."
+            return render_template("reset_password.html", error=error)
+
+        if p1 != p2:
+            error = "Passwords do not match."
+            return render_template("reset_password.html", error=error)
+
+        users = load_users()
+        uname = session.get("otp_user")
+
+        if uname not in users:
+            error = "User not found."
+            return render_template("reset_password.html", error=error)
+
+        users[uname]["password_hash"] = generate_password_hash(p1)
+        save_users(users)
+
+        session.pop("otp_code", None)
+        session.pop("otp_ts", None)
+        session.pop("otp_verified", None)
+        session.pop("otp_user", None)
+
+        push_notif("INFO", "Password changed", f"Password updated for user: {uname}")
+        return redirect(url_for("login"))
+
+    return render_template("reset_password.html", error=error)
+

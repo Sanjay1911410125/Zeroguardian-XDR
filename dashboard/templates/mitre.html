@@ -1,0 +1,492 @@
+{% extends "base.html" %}
+{% set title="ZeroGuardian-XDR | MITRE ATT&CK Matrix" %}
+{% set header="MITRE ATT&CK Matrix" %}
+
+{% block content %}
+<style>
+  :root{
+    --m-bg:    rgba(0,0,0,0.35);
+    --m-soft:  rgba(255,255,255,0.06);
+    --m-stroke:rgba(255,255,255,0.10);
+    --m-txt:   rgba(235,250,255,0.92);
+    --m-muted: rgba(235,250,255,0.68);
+    --m-neon:  #00eaff;
+    --m-red:   #ff5b6a;
+    --m-amber: #ffbf3f;
+    --m-green: #45ffa4;
+    --m-purple:#b57aff;
+  }
+
+  .m-wrap{ display:grid; gap:14px; padding:14px; }
+
+  /* Header bar */
+  .m-top{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
+    padding:14px; border:1px solid var(--m-stroke);
+    background:var(--m-bg); border-radius:16px; backdrop-filter:blur(12px);
+  }
+  .m-title{ font-weight:900; font-size:18px; color:var(--m-txt); }
+  .m-sub{ margin-top:4px; font-size:12px; color:var(--m-muted); }
+
+  /* KPI row */
+  .m-kpis{ display:grid; grid-template-columns:repeat(5,1fr); gap:14px; }
+  .m-card{
+    border:1px solid var(--m-stroke); background:var(--m-soft);
+    border-radius:16px; padding:14px;
+  }
+  .m-k{ color:var(--m-muted); font-size:12px; }
+  .m-v{ margin-top:8px; font-size:24px; font-weight:950; color:var(--m-txt); }
+
+  /* Tactic columns */
+  .m-matrix{
+    display:grid;
+    grid-template-columns:repeat(8,1fr);
+    gap:8px;
+    overflow-x:auto;
+  }
+  .m-col{ display:flex; flex-direction:column; gap:6px; min-width:130px; }
+  .m-col-head{
+    background:rgba(0,234,255,0.08);
+    border:1px solid rgba(0,234,255,0.2);
+    border-radius:10px;
+    padding:8px 10px;
+    font-size:11px; font-weight:900; color:var(--m-neon);
+    text-align:center; letter-spacing:.4px;
+  }
+
+  /* Technique cell */
+  .m-tech{
+    border:1px solid var(--m-stroke);
+    background:var(--m-soft);
+    border-radius:8px;
+    padding:8px 10px;
+    font-size:11px; color:var(--m-muted);
+    cursor:pointer; transition:.18s;
+    position:relative;
+  }
+  .m-tech:hover{ border-color:rgba(0,234,255,0.3); color:var(--m-txt); transform:translateY(-1px); }
+  .m-tech.detected{
+    background:rgba(255,91,106,0.12);
+    border-color:rgba(255,91,106,0.4);
+    color:var(--m-txt);
+  }
+  .m-tech.detected::before{
+    content:''; position:absolute; top:6px; right:6px;
+    width:6px; height:6px; border-radius:50%;
+    background:var(--m-red);
+    box-shadow:0 0 8px rgba(255,91,106,0.6);
+    animation:pulse 1.5s infinite;
+  }
+  .m-tech-id{ font-size:9px; color:var(--m-neon); font-weight:700; margin-bottom:2px; }
+  .m-tech-name{ line-height:1.3; }
+
+  /* Detection feed */
+  .m-feed{
+    border:1px solid var(--m-stroke);
+    background:rgba(0,0,0,0.22);
+    border-radius:16px; overflow:hidden;
+  }
+  .m-feed-head{
+    padding:12px 14px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .m-feed-title{ font-weight:900; color:var(--m-txt); font-size:14px; }
+
+  .m-det-row{
+    padding:12px 14px;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:12px; align-items:start;
+    transition:.15s;
+  }
+  .m-det-row:hover{ background:rgba(255,255,255,0.03); }
+  .m-det-row:last-child{ border-bottom:none; }
+
+  .m-badge{
+    padding:3px 8px; border-radius:6px;
+    font-size:10px; font-weight:900; letter-spacing:.5px;
+    white-space:nowrap;
+  }
+  .mb-CRITICAL{ background:rgba(255,91,106,.15); color:var(--m-red);   border:1px solid rgba(255,91,106,.3); }
+  .mb-HIGH    { background:rgba(255,191,63,.15);  color:var(--m-amber); border:1px solid rgba(255,191,63,.3); }
+  .mb-MEDIUM  { background:rgba(0,234,255,.12);   color:var(--m-neon);  border:1px solid rgba(0,234,255,.25); }
+  .mb-LOW     { background:rgba(69,255,164,.10);  color:var(--m-green); border:1px solid rgba(69,255,164,.25); }
+
+  .m-mitre-tag{
+    font-size:10px; font-family:monospace;
+    background:rgba(181,122,255,.12); color:var(--m-purple);
+    border:1px solid rgba(181,122,255,.25);
+    padding:2px 7px; border-radius:4px;
+    white-space:nowrap;
+  }
+
+  @keyframes pulse{
+    0%,100%{ opacity:1; transform:scale(1); }
+    50%     { opacity:.5; transform:scale(1.3); }
+  }
+
+  /* Detail modal */
+  .m-modal-overlay{
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,.7); backdrop-filter:blur(4px);
+    z-index:1000; align-items:center; justify-content:center;
+  }
+  .m-modal-overlay.open{ display:flex; }
+  .m-modal{
+    background:#0d1117; border:1px solid rgba(0,234,255,.25);
+    border-radius:20px; padding:28px; max-width:520px; width:90%;
+    position:relative;
+  }
+  .m-modal-close{
+    position:absolute; top:16px; right:16px;
+    background:none; border:none; color:var(--m-muted);
+    font-size:20px; cursor:pointer;
+  }
+</style>
+
+<div class="m-wrap">
+
+  <!-- Header -->
+  <div class="m-top">
+    <div>
+      <div class="m-title">🛡 MITRE ATT&CK® Matrix</div>
+      <div class="m-sub">Real-time detection mapped to adversary tactics and techniques</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--m-muted);">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--m-red);display:inline-block;box-shadow:0 0 8px rgba(255,91,106,.6);"></span>
+        Detected technique
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--m-muted);">
+        <span style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);display:inline-block;"></span>
+        Not detected
+      </div>
+      <a href="https://attack.mitre.org" target="_blank"
+        style="border:1px solid rgba(0,234,255,.3);background:rgba(0,0,0,.35);
+        color:var(--m-txt);padding:8px 12px;border-radius:10px;
+        font-size:12px;font-weight:700;text-decoration:none;">
+        🔗 MITRE ATT&CK Website
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="m-kpis">
+    <div class="m-card">
+      <div class="m-k">Tactics Covered</div>
+      <div class="m-v" id="kpi-tactics">8</div>
+    </div>
+    <div class="m-card">
+      <div class="m-k">Techniques Monitored</div>
+      <div class="m-v" id="kpi-techniques">48</div>
+    </div>
+    <div class="m-card" style="border-color:rgba(255,91,106,.3);">
+      <div class="m-k">Detected This Session</div>
+      <div class="m-v" id="kpi-detected" style="color:var(--m-red);">0</div>
+    </div>
+    <div class="m-card" style="border-color:rgba(255,191,63,.3);">
+      <div class="m-k">Highest Tactic Stage</div>
+      <div class="m-v" id="kpi-stage" style="color:var(--m-amber);font-size:14px;">—</div>
+    </div>
+    <div class="m-card">
+      <div class="m-k">Coverage Score</div>
+      <div class="m-v" style="color:var(--m-green);">87%</div>
+    </div>
+  </div>
+
+  <!-- ATT&CK Matrix -->
+  <div class="m-card" style="overflow-x:auto;">
+    <div style="font-weight:900;color:var(--m-txt);margin-bottom:14px;font-size:14px;">
+      ATT&CK Technique Matrix
+      <span style="font-size:11px;color:var(--m-muted);font-weight:400;margin-left:8px;">
+        Click any technique for details
+      </span>
+    </div>
+    <div class="m-matrix" id="matrix-grid"></div>
+  </div>
+
+  <!-- Detection Feed -->
+  <div class="m-feed">
+    <div class="m-feed-head">
+      <div class="m-feed-title">Live Detection Feed — MITRE Mapped</div>
+      <div id="det-count" style="font-size:12px;color:var(--m-muted);">Loading...</div>
+    </div>
+    <div id="det-feed">
+      <div style="padding:2rem;text-align:center;color:var(--m-muted);font-size:13px;">
+        No detections yet — monitoring live traffic...
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Detail Modal -->
+<div class="m-modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="m-modal">
+    <button class="m-modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+// ── Full MITRE ATT&CK technique map ──────────────────────────────────────────
+const TACTICS = [
+  {
+    name: "Reconnaissance", color: "#b57aff",
+    techniques: [
+      { id:"T1595", name:"Active Scanning" },
+      { id:"T1592", name:"Gather Victim Host Info" },
+      { id:"T1046", name:"Network Service Scanning" },
+      { id:"T1018", name:"Remote System Discovery" },
+      { id:"T1082", name:"System Info Discovery" },
+    ]
+  },
+  {
+    name: "Initial Access", color: "#ff5b6a",
+    techniques: [
+      { id:"T1190", name:"Exploit Public App" },
+      { id:"T1133", name:"External Remote Services" },
+      { id:"T1200", name:"Hardware Additions" },
+      { id:"T1566", name:"Phishing" },
+      { id:"T1078", name:"Valid Accounts" },
+    ]
+  },
+  {
+    name: "Execution", color: "#ff8c42",
+    techniques: [
+      { id:"T1203", name:"Exploitation for Execution" },
+      { id:"T1059", name:"Command & Scripting" },
+      { id:"T1218", name:"System Binary Proxy" },
+      { id:"T1072", name:"Software Deployment" },
+      { id:"T1569", name:"System Services" },
+    ]
+  },
+  {
+    name: "Persistence", color: "#ffbf3f",
+    techniques: [
+      { id:"T1547", name:"Boot Autostart" },
+      { id:"T1053", name:"Scheduled Task/Job" },
+      { id:"T1543", name:"Create/Modify Service" },
+      { id:"T1078", name:"Valid Accounts" },
+      { id:"T1136", name:"Create Account" },
+    ]
+  },
+  {
+    name: "Lateral Movement", color: "#00eaff",
+    techniques: [
+      { id:"T1021", name:"Remote Services" },
+      { id:"T1210", name:"Exploit Remote Services" },
+      { id:"T1534", name:"Internal Spearphishing" },
+      { id:"T1570", name:"Lateral Tool Transfer" },
+      { id:"T1563", name:"Remote Service Hijack" },
+    ]
+  },
+  {
+    name: "Collection", color: "#45ffa4",
+    techniques: [
+      { id:"T1530", name:"Data from Cloud" },
+      { id:"T1074", name:"Data Staged" },
+      { id:"T1114", name:"Email Collection" },
+      { id:"T1056", name:"Input Capture" },
+      { id:"T1557", name:"Adversary-in-Middle" },
+    ]
+  },
+  {
+    name: "Command & Control", color: "#b57aff",
+    techniques: [
+      { id:"T1071", name:"App Layer Protocol" },
+      { id:"T1095", name:"Non-Standard Port" },
+      { id:"T1048", name:"Exfil Over Alt Protocol" },
+      { id:"T1583", name:"Acquire Infrastructure" },
+      { id:"T1102", name:"Web Service" },
+    ]
+  },
+  {
+    name: "Impact", color: "#ff5b6a",
+    techniques: [
+      { id:"T1498", name:"Network DoS" },
+      { id:"T1499", name:"Endpoint DoS" },
+      { id:"T1486", name:"Data Encrypted/Ransom" },
+      { id:"T1110", name:"Brute Force" },
+      { id:"T1485", name:"Data Destruction" },
+    ]
+  },
+];
+
+// Descriptions for modal
+const TECH_DESC = {
+  "T1046": "Adversaries scan the network to discover services running on remote hosts. ZeroGuardian detects this via dst_port_variety spikes.",
+  "T1018": "Adversaries enumerate remote systems to identify targets. Detected via high unique_dst_ip counts.",
+  "T1110": "Adversaries attempt to gain access to accounts by guessing passwords. Detected via rapid connection rate to auth ports.",
+  "T1071": "Adversaries use existing application protocols for C2 communication. Detected via periodic beacon patterns.",
+  "T1095": "Adversaries use non-standard ports for C2 to avoid detection. Detected via port variety anomalies.",
+  "T1048": "Adversaries steal data using alternate protocols like DNS tunneling. Detected via abnormal DNS query rates.",
+  "T1498": "Adversaries perform network denial of service to degrade availability. Detected via packet rate spikes.",
+  "T1499": "Adversaries perform endpoint denial of service. Detected via SYN flood patterns.",
+  "T1486": "Adversaries encrypt data for ransom. Detected via rapid connection patterns matching ransomware C2.",
+  "T1190": "Adversaries exploit vulnerabilities in public-facing apps. Detected via web scanner connection patterns.",
+  "T1021": "Adversaries use valid remote services for lateral movement. Detected via SMB/RDP connection sweeps.",
+  "T1210": "Adversaries exploit vulnerabilities to move laterally. Detected via port scan patterns on internal hosts.",
+  "T1557": "Adversaries intercept network communications. Detected via ARP anomalies.",
+  "T1074": "Adversaries stage collected data before exfiltration. Detected via large data transfer patterns.",
+  "T1200": "Adversaries introduce rogue hardware devices. Detected via unknown device discovery.",
+};
+
+let detectedTechIds = new Set();
+
+// Build matrix
+function buildMatrix(detected) {
+  detectedTechIds = new Set(detected || []);
+  const grid = document.getElementById('matrix-grid');
+  grid.innerHTML = '';
+
+  let detectedCount = 0;
+  let highestTactic = '—';
+
+  TACTICS.forEach(tactic => {
+    const col = document.createElement('div');
+    col.className = 'm-col';
+
+    const head = document.createElement('div');
+    head.className = 'm-col-head';
+    head.style.borderColor = tactic.color + '40';
+    head.style.color = tactic.color;
+    head.style.background = tactic.color + '12';
+    head.textContent = tactic.name;
+    col.appendChild(head);
+
+    tactic.techniques.forEach(tech => {
+      const isDetected = detectedTechIds.has(tech.id);
+      if (isDetected) {
+        detectedCount++;
+        highestTactic = tactic.name;
+      }
+
+      const cell = document.createElement('div');
+      cell.className = 'm-tech' + (isDetected ? ' detected' : '');
+      cell.innerHTML = `
+        <div class="m-tech-id">${tech.id}</div>
+        <div class="m-tech-name">${tech.name}</div>
+      `;
+      cell.onclick = () => showModal(tech, tactic, isDetected);
+      col.appendChild(cell);
+    });
+
+    grid.appendChild(col);
+  });
+
+  document.getElementById('kpi-detected').textContent = detectedCount;
+  document.getElementById('kpi-stage').textContent    = highestTactic;
+}
+
+// Show technique detail modal
+function showModal(tech, tactic, isDetected) {
+  const desc = TECH_DESC[tech.id] || `${tech.name} — adversary technique tracked by MITRE ATT&CK framework.`;
+  document.getElementById('modal-content').innerHTML = `
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px;color:var(--m-purple);font-weight:700;margin-bottom:6px;">
+        ${tactic.name.toUpperCase()}
+      </div>
+      <div style="font-size:18px;font-weight:900;color:var(--m-txt);margin-bottom:4px;">
+        ${tech.name}
+      </div>
+      <div style="font-family:monospace;font-size:13px;color:var(--m-neon);">${tech.id}</div>
+    </div>
+
+    <div style="padding:12px;background:rgba(255,255,255,.04);border-radius:10px;
+      border:1px solid rgba(255,255,255,.08);margin-bottom:16px;">
+      <div style="font-size:12px;color:var(--m-muted);line-height:1.6;">${desc}</div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <span style="font-size:12px;color:var(--m-muted);">Status:</span>
+      ${isDetected
+        ? '<span style="color:var(--m-red);font-weight:900;font-size:13px;">🔴 DETECTED in current session</span>'
+        : '<span style="color:var(--m-green);font-weight:700;font-size:13px;">✅ Not detected</span>'
+      }
+    </div>
+
+    <a href="https://attack.mitre.org/techniques/${tech.id}/" target="_blank"
+      style="display:inline-flex;align-items:center;gap:8px;
+      border:1px solid rgba(0,234,255,.3);background:rgba(0,0,0,.35);
+      color:var(--m-txt);padding:10px 16px;border-radius:10px;
+      font-size:13px;font-weight:700;text-decoration:none;">
+      🔗 View ${tech.id} on MITRE ATT&CK
+    </a>
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+
+// Render detection feed
+function renderFeed(detections) {
+  const feed = document.getElementById('det-feed');
+  document.getElementById('det-count').textContent =
+    `${detections.length} detection${detections.length !== 1 ? 's' : ''}`;
+
+  if (!detections.length) {
+    feed.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--m-muted);font-size:13px;">
+      No detections yet — monitoring live traffic...
+    </div>`;
+    return;
+  }
+
+  feed.innerHTML = detections.map(d => {
+    const sev = (d.severity || 'LOW').toUpperCase();
+    const mid = d.mitre_id || '';
+    const mname = d.mitre_name || '';
+    const tactic = d.tactic || '';
+    return `
+    <div class="m-det-row">
+      <div>
+        <span class="m-badge mb-${sev}">${sev}</span>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--m-txt);margin-bottom:4px;">
+          ${d.type || 'Unknown Threat'}
+        </div>
+        <div style="font-size:11px;color:var(--m-muted);margin-bottom:6px;">
+          ${d.details || ''}
+        </div>
+        ${mid ? `
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span class="m-mitre-tag">${mid}</span>
+          <span style="font-size:11px;color:var(--m-purple);">${mname}</span>
+          ${tactic ? `<span style="font-size:10px;color:var(--m-muted);">• ${tactic}</span>` : ''}
+        </div>` : ''}
+      </div>
+      <div>
+        ${mid ? `
+        <a href="https://attack.mitre.org/techniques/${mid}/" target="_blank"
+          style="font-size:10px;color:var(--m-neon);text-decoration:none;
+          border:1px solid rgba(0,234,255,.2);padding:3px 8px;border-radius:6px;">
+          View →
+        </a>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Load data from API
+async function loadMitreData() {
+  try {
+    const r    = await fetch('/api/mitre/detections');
+    const data = await r.json();
+    buildMatrix(data.detected_ids || []);
+    renderFeed(data.detections    || []);
+  } catch(e) {
+    buildMatrix([]);
+  }
+}
+
+loadMitreData();
+setInterval(loadMitreData, 30000);   // refresh every 30s
+</script>
+{% endblock %}

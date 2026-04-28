@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="zg-page-header">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+    <div>
+      <h1 class="zg-page-title">Security Reports</h1>
+      <p class="zg-page-sub">Generate and download professional PDF security reports</p>
+    </div>
+    <button class="zg-btn zg-btn-primary" onclick="openGenerateModal()">
+      📄 Generate Security Report
+    </button>
+  </div>
+</div>
+
+<div style="padding:0 1.5rem 3rem;">
+
+  <!-- ── STATUS BANNER ──────────────────────────────────────────────────── -->
+  <div id="status-banner" style="display:none;margin-bottom:1.5rem;padding:1rem 1.5rem;
+    border-radius:10px;font-size:.92rem;font-weight:600;border-left:4px solid;">
+  </div>
+
+  <!-- ── GENERATE MODAL ────────────────────────────────────────────────── -->
+  <div id="gen-modal" style="display:none;position:fixed;inset:0;z-index:1000;
+    background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+    align-items:center;justify-content:center;">
+    <div style="background:#1e293b;border:1px solid rgba(255,255,255,.1);
+      border-radius:16px;padding:2rem;width:480px;max-width:90vw;">
+
+      <div style="font-size:1.2rem;font-weight:700;color:#e2e8f0;margin-bottom:1.5rem;">
+        📄 Generate Security Report
+      </div>
+
+      <div style="display:grid;gap:1rem;margin-bottom:1.5rem;">
+        <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer;">
+          <input type="checkbox" id="opt-email" style="width:16px;height:16px;">
+          <div>
+            <div style="font-size:.9rem;font-weight:600;color:#e2e8f0;">📧 Send via Email</div>
+            <div style="font-size:.78rem;color:#64748b;">Attach PDF to configured email recipient</div>
+          </div>
+        </label>
+
+        <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer;">
+          <input type="checkbox" id="opt-telegram" style="width:16px;height:16px;" checked>
+          <div>
+            <div style="font-size:.9rem;font-weight:600;color:#e2e8f0;">🔔 Send via Telegram</div>
+            <div style="font-size:.78rem;color:#64748b;">Send PDF to configured Telegram chat</div>
+          </div>
+        </label>
+
+        <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:1rem;">
+          <div style="font-size:.85rem;font-weight:600;color:#94a3b8;margin-bottom:.5rem;">
+            Schedule automatic reports
+          </div>
+          <div style="display:flex;gap:.5rem;align-items:center;">
+            <select id="schedule-interval" class="zg-input" style="flex:1;">
+              <option value="">Manual only (no schedule)</option>
+              <option value="6">Every 6 hours</option>
+              <option value="12">Every 12 hours</option>
+              <option value="24" selected>Daily (every 24 hours)</option>
+              <option value="168">Weekly</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+        <button class="zg-btn zg-btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="zg-btn zg-btn-primary" id="gen-btn" onclick="generateReport()">
+          📄 Generate Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── GENERATING INDICATOR ──────────────────────────────────────────── -->
+  <div id="generating-card" style="display:none;" class="zg-card" style="margin-bottom:1.5rem;text-align:center;padding:2.5rem;">
+    <div style="font-size:2rem;margin-bottom:.75rem;">⟳</div>
+    <div style="font-size:1rem;font-weight:600;color:#e2e8f0;">Generating your report...</div>
+    <div style="font-size:.85rem;color:#64748b;margin-top:.4rem;">
+      Collecting data from all modules — this takes about 10 seconds
+    </div>
+    <div style="margin-top:1rem;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;">
+      <div id="progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);
+        border-radius:2px;transition:width .5s;animation:progress 8s linear forwards;"></div>
+    </div>
+  </div>
+
+  <!-- ── REPORTS LIST ───────────────────────────────────────────────────── -->
+  <div class="zg-card">
+    <div style="font-size:1rem;font-weight:700;color:#e2e8f0;margin-bottom:1.25rem;">
+      Generated Reports
+    </div>
+
+    <div id="no-reports" style="{{ 'display:none' if reports else '' }}
+      text-align:center;padding:3rem;color:#475569;">
+      <div style="font-size:2.5rem;margin-bottom:1rem;">📄</div>
+      <div style="font-weight:600;color:#64748b;">No reports generated yet</div>
+      <div style="font-size:.85rem;margin-top:.5rem;">
+        Click "Generate Security Report" to create your first PDF report
+      </div>
+    </div>
+
+    <div id="reports-list">
+      {% for r in reports %}
+      <div class="report-row" data-filename="{{ r.filename }}">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <div style="width:40px;height:40px;background:rgba(239,68,68,.1);border-radius:10px;
+            display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.2rem;">
+            📄
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:.9rem;font-weight:600;color:#e2e8f0;
+              overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              {{ r.filename }}
+            </div>
+            <div style="font-size:.78rem;color:#64748b;">
+              {{ r.created }} &nbsp;·&nbsp; {{ r.size_kb }} KB
+            </div>
+          </div>
+          <div style="display:flex;gap:.5rem;flex-shrink:0;">
+            <a href="/api/reports/download/{{ r.filename }}"
+               class="zg-btn zg-btn-secondary" style="font-size:.8rem;padding:.4rem .9rem;">
+              ⬇ Download
+            </a>
+            <button class="zg-btn zg-btn-danger"
+                    style="font-size:.8rem;padding:.4rem .9rem;"
+                    onclick="deleteReport('{{ r.filename }}', this)">
+              🗑 Delete
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<style>
+.zg-page-header {
+  padding:2rem 3rem 1.5rem;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  margin-bottom:1.5rem;
+}
+.zg-page-title { font-size:1.6rem;font-weight:700;color:#e2e8f0;margin:0 0 .3rem; }
+.zg-page-sub   { font-size:.88rem;color:#64748b;margin:0; }
+
+.zg-card {
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+  padding:1.75rem;
+}
+
+.report-row {
+  padding:1rem 0;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.report-row:last-child { border-bottom:none; }
+
+.zg-btn { display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.25rem;
+  border-radius:8px;border:none;font-size:.85rem;font-weight:600;cursor:pointer;
+  transition:all .2s;text-decoration:none; }
+.zg-btn-primary   { background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white; }
+.zg-btn-primary:hover { background:linear-gradient(135deg,#38bdf8,#0ea5e9);transform:translateY(-1px); }
+.zg-btn-secondary { background:rgba(255,255,255,.08);color:#cbd5e1;border:1px solid rgba(255,255,255,.12); }
+.zg-btn-secondary:hover { background:rgba(255,255,255,.12); }
+.zg-btn-danger    { background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2); }
+.zg-btn-danger:hover { background:rgba(239,68,68,.2); }
+.zg-btn:disabled  { opacity:.5;cursor:not-allowed;transform:none !important; }
+
+.zg-input {
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;padding:.6rem 1rem;color:#e2e8f0;font-size:.88rem;
+  width:100%;box-sizing:border-box;
+}
+
+@keyframes progress { from{width:0%} to{width:95%} }
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+</style>
+
+<script>
+let pollTimer = null;
+
+function openGenerateModal() {
+  document.getElementById('gen-modal').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('gen-modal').style.display = 'none';
+}
+
+function showBanner(msg, type) {
+  const b = document.getElementById('status-banner');
+  const styles = {
+    success: { bg:'rgba(34,197,94,.1)',  border:'#22c55e', color:'#22c55e' },
+    error:   { bg:'rgba(239,68,68,.1)',  border:'#ef4444', color:'#ef4444' },
+    info:    { bg:'rgba(56,189,248,.1)', border:'#38bdf8', color:'#38bdf8' },
+  };
+  const s = styles[type] || styles.info;
+  b.style.display     = 'block';
+  b.style.background  = s.bg;
+  b.style.borderColor = s.border;
+  b.style.color       = s.color;
+  b.textContent       = msg;
+  if (type !== 'info') setTimeout(() => b.style.display = 'none', 6000);
+}
+
+async function generateReport() {
+  const btn      = document.getElementById('gen-btn');
+  const sendEmail = document.getElementById('opt-email').checked;
+  const sendTg    = document.getElementById('opt-telegram').checked;
+  const schedule  = document.getElementById('schedule-interval').value;
+
+  btn.disabled = true;
+  btn.textContent = '⟳ Starting...';
+  closeModal();
+
+  // Schedule if requested
+  if (schedule) {
+    await fetch('/api/reports/schedule', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({interval_hours: parseInt(schedule)})
+    });
+  }
+
+  const r = await fetch('/api/reports/generate', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({send_email: sendEmail, send_telegram: sendTg})
+  });
+  const data = await r.json();
+
+  if (data.error) {
+    showBanner('❌ ' + data.error, 'error');
+    btn.disabled = false;
+    btn.textContent = '📄 Generate Now';
+    return;
+  }
+
+  document.getElementById('generating-card').style.display = 'block';
+  showBanner('⟳ Generating your report — this takes about 10 seconds...', 'info');
+
+  pollTimer = setInterval(pollStatus, 2000);
+}
+
+async function pollStatus() {
+  const r    = await fetch('/api/reports/status');
+  const data = await r.json();
+
+  if (!data.generating) {
+    clearInterval(pollTimer);
+    document.getElementById('generating-card').style.display = 'none';
+    showBanner('✅ Report generated successfully! Download it below.', 'success');
+
+    // Refresh reports list
+    renderReports(data.reports);
+
+    const btn = document.getElementById('gen-btn');
+    if (btn) { btn.disabled = false; btn.textContent = '📄 Generate Now'; }
+  }
+}
+
+function renderReports(reports) {
+  const list = document.getElementById('reports-list');
+  const none = document.getElementById('no-reports');
+
+  if (!reports || !reports.length) {
+    none.style.display = 'block';
+    list.innerHTML = '';
+    return;
+  }
+
+  none.style.display = 'none';
+  list.innerHTML = reports.map(r => `
+    <div class="report-row" data-filename="${r.filename}">
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <div style="width:40px;height:40px;background:rgba(239,68,68,.1);border-radius:10px;
+          display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.2rem;">📄</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.9rem;font-weight:600;color:#e2e8f0;">${r.filename}</div>
+          <div style="font-size:.78rem;color:#64748b;">${r.created} · ${r.size_kb} KB</div>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-shrink:0;">
+          <a href="/api/reports/download/${r.filename}" class="zg-btn zg-btn-secondary"
+             style="font-size:.8rem;padding:.4rem .9rem;">⬇ Download</a>
+          <button class="zg-btn zg-btn-danger" style="font-size:.8rem;padding:.4rem .9rem;"
+                  onclick="deleteReport('${r.filename}', this)">🗑 Delete</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function deleteReport(filename, btn) {
+  if (!confirm(`Delete ${filename}?`)) return;
+  btn.disabled = true;
+  const r = await fetch(`/api/reports/delete/${filename}`, { method:'DELETE' });
+  const d = await r.json();
+  if (d.success) {
+    btn.closest('.report-row').remove();
+    showBanner('🗑 Report deleted', 'success');
+  } else {
+    showBanner('❌ Delete failed: ' + d.error, 'error');
+    btn.disabled = false;
+  }
+}
+</script>
+{% endblock %}

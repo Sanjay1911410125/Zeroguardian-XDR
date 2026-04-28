@@ -1,0 +1,654 @@
+{% extends "base.html" %}
+{% set title="ZeroGuardian-XDR | AI Threat Insight Lab" %}
+{% set header="AI Threat Insight Lab" %}
+
+{% block content %}
+
+<style>
+  :root{
+    --ai-bg: rgba(0,0,0,0.32);
+    --ai-soft: rgba(255,255,255,0.06);
+    --ai-stroke: rgba(255,255,255,0.10);
+    --ai-txt: rgba(235,250,255,0.92);
+    --ai-muted: rgba(235,250,255,0.68);
+    --ai-neon: #00eaff;
+    --ai-green:#45ffa4;
+    --ai-amber:#ffbf3f;
+    --ai-red:#ff5b6a;
+  }
+
+  .ai-wrap{ display:grid; gap:14px; }
+  .ai-top{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
+    padding:14px; border:1px solid var(--ai-stroke);
+    background: var(--ai-bg); border-radius:16px; backdrop-filter: blur(12px);
+  }
+  .ai-title{ font-weight:950; font-size:18px; color:var(--ai-txt); letter-spacing:.2px; }
+  .ai-sub{ margin-top:4px; font-size:12px; color:var(--ai-muted); }
+  .ai-actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .ai-chip{
+    border:1px solid rgba(0,234,255,0.25);
+    background: rgba(0,0,0,0.35);
+    color: var(--ai-txt);
+    padding:8px 10px;
+    border-radius:999px;
+    font-size:12px;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .ai-dot{
+    width:8px; height:8px; border-radius:999px; background: var(--ai-green);
+    box-shadow: 0 0 14px rgba(69,255,164,0.35);
+  }
+  .ai-btn{
+    border:1px solid rgba(0,234,255,0.30);
+    background: rgba(0,0,0,0.35);
+    color: var(--ai-txt);
+    padding:10px 12px;
+    border-radius:12px;
+    font-weight:900;
+    cursor:pointer;
+    transition: .18s;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .ai-btn:hover{ transform: translateY(-1px); box-shadow: 0 0 18px rgba(0,234,255,0.12); }
+
+  /* KPI row */
+  .ai-kpis{ display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; }
+  .ai-card{
+    border:1px solid var(--ai-stroke);
+    background: var(--ai-soft);
+    border-radius:16px;
+    padding:14px;
+  }
+  .ai-k{ color:var(--ai-muted); font-size:12px; }
+  .ai-v{ margin-top:8px; font-size:24px; font-weight:950; color:var(--ai-txt); }
+  .ai-s{ margin-top:8px; color:var(--ai-muted); font-size:12px; display:flex; align-items:center; gap:8px; }
+
+  /* Main 3-column layout */
+  .ai-main{ display:grid; grid-template-columns: 0.95fr 1.10fr 0.95fr; gap:14px; }
+
+  .ai-panel{
+    border:1px solid var(--ai-stroke);
+    background: rgba(0,0,0,0.22);
+    border-radius:16px;
+    overflow:hidden;
+  }
+  .ai-ph{
+    padding:12px 14px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .ai-pt{ font-weight:950; color:var(--ai-txt); }
+  .ai-search{
+    width: 100%;
+    padding:10px 12px; border-radius:12px;
+    border:1px solid rgba(255,255,255,0.10);
+    background: rgba(0,0,0,0.35);
+    color: var(--ai-txt);
+    outline:none;
+  }
+  .ai-body{ padding:12px; }
+
+  /* Timeline list */
+  .ai-timeline{ display:grid; gap:10px; max-height: 560px; overflow:auto; padding-right:6px; }
+  .ai-item{
+    width:100%;
+    border:1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.05);
+    border-radius:14px;
+    padding:12px;
+    text-align:left;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .ai-item:hover{ transform: translateY(-1px); border-color: rgba(0,234,255,0.22); }
+  .ai-item-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .ai-item-name{ font-weight:950; color:var(--ai-txt); }
+  .ai-item-sub{ margin-top:6px; color:var(--ai-muted); font-size:12px; line-height:1.35; }
+  .ai-item-meta{ margin-top:8px; display:flex; gap:10px; flex-wrap:wrap; color:var(--ai-muted); font-size:12px; }
+
+  /* Badges */
+  .ai-badge{
+    padding:4px 10px; border-radius:999px;
+    border:1px solid rgba(255,255,255,0.12);
+    font-size:11px; font-weight:950; letter-spacing:.4px;
+  }
+  .ai-b-CRITICAL{ border-color: rgba(255,91,106,0.45); color: var(--ai-red); }
+  .ai-b-HIGH{ border-color: rgba(255,191,63,0.45); color: var(--ai-amber); }
+  .ai-b-MEDIUM{ border-color: rgba(0,234,255,0.35); color: var(--ai-neon); }
+  .ai-b-LOW{ border-color: rgba(69,255,164,0.35); color: var(--ai-green); }
+  .ai-b-INFO{ border-color: rgba(255,255,255,0.18); color: var(--ai-muted); }
+
+  /* Explainability */
+  .ai-row{ display:grid; grid-template-columns: 120px 1fr; gap:10px; padding:7px 0; }
+  .ai-row .k{ color: var(--ai-muted); font-size:12px; }
+  .ai-row .v{ color: var(--ai-txt); font-weight:900; font-size:13px; word-break: break-word; }
+
+  .ai-hr{ height:1px; background: rgba(255,255,255,0.08); margin:12px 0; }
+
+  .ai-pre{
+    white-space: pre-wrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 12px;
+    color: rgba(235,250,255,0.88);
+    background: rgba(0,0,0,0.35);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:12px;
+    padding:10px;
+  }
+
+  /* Confidence bar */
+  .ai-bar{
+    width:100%;
+    height:10px;
+    border-radius:999px;
+    background: rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.10);
+    overflow:hidden;
+  }
+  .ai-bar > div{
+    height:100%;
+    width:0%;
+    background: rgba(0,234,255,0.75);
+    box-shadow: 0 0 16px rgba(0,234,255,0.35);
+    transition: width .35s;
+  }
+
+  /* Feature list */
+  .ai-feats{ display:grid; gap:8px; }
+  .ai-feat{
+    display:grid; grid-template-columns: 1fr 60px; gap:10px;
+    align-items:center;
+    padding:10px 10px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.05);
+  }
+  .ai-feat .name{ color:var(--ai-txt); font-weight:900; font-size:12px; }
+  .ai-feat .w{ color:var(--ai-muted); font-weight:900; font-size:12px; text-align:right; }
+
+  /* Chart box */
+  .ai-chartbox{
+    margin-top: 12px;
+    border:1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    border-radius: 14px;
+    padding: 10px;
+  }
+  .ai-small{ color:var(--ai-muted); font-size:12px; margin-top:8px; }
+
+  @media(max-width: 1150px){
+    .ai-main{ grid-template-columns: 1fr; }
+    .ai-kpis{ grid-template-columns: 1fr 1fr; }
+  }
+</style>
+
+<div class="ai-wrap">
+
+  <!-- Header -->
+  <div class="ai-top">
+    <div>
+      <div class="ai-title">AI Threat Insight Lab</div>
+      <div class="ai-sub">Explainable detections • Confidence + evidence • Feed refresh: 1 min • Charts: 5 min</div>
+    </div>
+    <div class="ai-actions">
+      <div class="ai-chip"><span class="ai-dot"></span><span>Live</span></div>
+      <div class="ai-chip">Last UI update: <span id="aiLastUI">—</span></div>
+      <div class="ai-chip">Last Chart update: <span id="aiLastChart">—</span></div>
+      <button class="ai-btn" id="aiRefreshBtn" type="button">↻ Refresh now</button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="ai-kpis">
+    <div class="ai-card">
+      <div class="ai-k">AI Alerts</div>
+      <div class="ai-v" id="kpiAI">0</div>
+      <div class="ai-s">last 250 events</div>
+    </div>
+    <div class="ai-card">
+      <div class="ai-k">Critical</div>
+      <div class="ai-v" id="kpiCrit">0</div>
+      <div class="ai-s">immediate attention</div>
+    </div>
+    <div class="ai-card">
+      <div class="ai-k">Avg Confidence</div>
+      <div class="ai-v" id="kpiConf">—</div>
+      <div class="ai-s">model certainty</div>
+    </div>
+    <div class="ai-card">
+      <div class="ai-k">Unique Devices</div>
+      <div class="ai-v" id="kpiIPs">0</div>
+      <div class="ai-s">IPs affected</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="ai-main">
+
+    <!-- Left: Timeline -->
+    <div class="ai-panel">
+      <div class="ai-ph">
+        <div class="ai-pt">Detection Timeline</div>
+      </div>
+      <div class="ai-body">
+        <input class="ai-search" id="aiSearch" placeholder="Search title / details / ip / severity / model..." />
+        <div style="height:10px"></div>
+        <div class="ai-timeline" id="aiList">
+          <div class="ai-small">Loading AI detections…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Middle: Explainability -->
+    <div class="ai-panel">
+      <div class="ai-ph">
+        <div class="ai-pt">Explainability</div>
+        <span class="ai-badge ai-b-INFO" id="aiSevBadge">—</span>
+      </div>
+      <div class="ai-body">
+        <div class="ai-row"><div class="k">Title</div><div class="v" id="dTitle">—</div></div>
+        <div class="ai-row"><div class="k">Device IP</div><div class="v" id="dIP">—</div></div>
+        <div class="ai-row"><div class="k">Model</div><div class="v" id="dModel">—</div></div>
+
+        <div class="ai-hr"></div>
+
+        <div class="ai-row"><div class="k">Confidence</div><div class="v"><span id="dConfText">—</span></div></div>
+        <div class="ai-bar"><div id="dConfBar"></div></div>
+
+        <div class="ai-hr"></div>
+
+        <div class="ai-k" style="margin-bottom:8px;">Top reasons (features)</div>
+        <div class="ai-feats" id="dFeats">
+          <div class="ai-small">Select a detection to view reasons.</div>
+        </div>
+
+        <div class="ai-chartbox">
+          <div class="ai-k">Confidence Trend (last points)</div>
+          <div style="height:220px;">
+            <canvas id="aiChart"></canvas>
+          </div>
+          <div class="ai-small">Chart refreshes every 5 minutes.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Evidence -->
+    <div class="ai-panel">
+      <div class="ai-ph">
+        <div class="ai-pt">Evidence & Raw</div>
+      </div>
+      <div class="ai-body">
+        <div class="ai-k">Summary</div>
+        <div class="ai-pre" id="dSummary">—</div>
+
+        <div class="ai-hr"></div>
+
+        <div class="ai-k">Raw meta / logs</div>
+        <div class="ai-pre" id="dRaw">—</div>
+
+        <div class="ai-hr"></div>
+
+        <div class="ai-k">Suggested action</div>
+        <div class="ai-pre" id="dAction">—</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  // ===== Settings =====
+  const REFRESH_MS = 60 * 1000;      // 1 minute feed refresh
+  const CHART_MS   = 5 * 60 * 1000;  // 5 minutes chart refresh
+
+  // ===== Elements =====
+  const elList = document.getElementById("aiList");
+  const elSearch = document.getElementById("aiSearch");
+  const btnRefresh = document.getElementById("aiRefreshBtn");
+
+  const elLastUI = document.getElementById("aiLastUI");
+  const elLastChart = document.getElementById("aiLastChart");
+
+  const kpiAI = document.getElementById("kpiAI");
+  const kpiCrit = document.getElementById("kpiCrit");
+  const kpiConf = document.getElementById("kpiConf");
+  const kpiIPs = document.getElementById("kpiIPs");
+
+  const sevBadge = document.getElementById("aiSevBadge");
+  const dTitle = document.getElementById("dTitle");
+  const dIP = document.getElementById("dIP");
+  const dModel = document.getElementById("dModel");
+  const dConfText = document.getElementById("dConfText");
+  const dConfBar = document.getElementById("dConfBar");
+  const dFeats = document.getElementById("dFeats");
+
+  const dSummary = document.getElementById("dSummary");
+  const dRaw = document.getElementById("dRaw");
+  const dAction = document.getElementById("dAction");
+
+  let rawItems = [];
+  let chartObj = null;
+  let lastChartUpdate = 0;
+
+  function safe(x){ return (x === null || x === undefined) ? "" : String(x); }
+
+  function fmtTs(ts){
+    try{
+      if(!ts) return "—";
+      // server sends ms epoch
+      const d = new Date(Number(ts));
+      return d.toLocaleString();
+    }catch(e){ return "—"; }
+  }
+
+  function badgeHtml(sev){
+    const s = (sev || "INFO").toUpperCase();
+    return `<span class="ai-badge ai-b-${s}">${s}</span>`;
+  }
+
+  function pickIP(a){
+    return a.ip || a.src_ip || a.device_ip || a.host || "unknown";
+  }
+  function pickTitle(a){
+    return a.title || a.type || a.name || "AI Detection";
+  }
+  function pickDetails(a){
+    return a.details || a.reason || a.description || a.message || "";
+  }
+  function pickModel(a){
+    return a.model || a.detector || a.engine || "Behavior Analytics";
+  }
+  function pickConf(a){
+    // 0..1 or 0..100 both accepted
+    let c = a.confidence;
+    if(c === undefined || c === null) c = a.score;
+    if(c === undefined || c === null) return null;
+    c = Number(c);
+    if(!isFinite(c)) return null;
+    if(c <= 1) return Math.round(c * 100);
+    return Math.round(c);
+  }
+
+  function buildFeatures(a){
+    // expects list: [{name, weight}] OR dict {feature: weight}
+    const f = a.features || a.top_features || a.explain || null;
+    const out = [];
+    if(Array.isArray(f)){
+      for(const x of f){
+        const n = x.name || x.feature || "signal";
+        const w = x.weight ?? x.value ?? "";
+        out.push({name: n, weight: w});
+      }
+    } else if(f && typeof f === "object"){
+      for(const [k,v] of Object.entries(f)){
+        out.push({name: k, weight: v});
+      }
+    }
+    // if none, make from hints
+    if(!out.length){
+      const det = pickDetails(a);
+      if(det) out.push({name:"reason", weight: det.slice(0,40) + (det.length>40?"…":"")});
+      const rate = a.packet_rate ?? a.pps ?? null;
+      if(rate !== null) out.push({name:"packet_rate", weight: rate});
+      const proto = a.protocol ?? null;
+      if(proto) out.push({name:"protocol", weight: proto});
+    }
+    return out.slice(0,5);
+  }
+
+  function renderKPIs(items){
+    const n = items.length;
+    const crit = items.filter(x => safe(x.severity).toUpperCase() === "CRITICAL").length;
+
+    const confs = items.map(pickConf).filter(x => x !== null);
+    const avg = confs.length ? Math.round(confs.reduce((a,b)=>a+b,0)/confs.length) : null;
+
+    const ips = new Set(items.map(pickIP));
+    ips.delete("unknown");
+
+    kpiAI.textContent = n;
+    kpiCrit.textContent = crit;
+    kpiConf.textContent = (avg === null ? "—" : (avg + "%"));
+    kpiIPs.textContent = ips.size;
+  }
+
+  function renderList(){
+    const q = (elSearch.value || "").trim().toLowerCase();
+    const filtered = rawItems.filter(a => {
+      if(!q) return true;
+      const blob = [
+        pickTitle(a), pickIP(a), pickDetails(a), safe(a.severity), pickModel(a)
+      ].join(" ").toLowerCase();
+      return blob.includes(q);
+    });
+
+    if(!filtered.length){
+      elList.innerHTML = `<div class="ai-small">No AI detections found.</div>`;
+      return;
+    }
+
+    elList.innerHTML = filtered.slice(0,250).map((a, idx) => {
+      const sev = (safe(a.severity) || "INFO").toUpperCase();
+      const ip = pickIP(a);
+      const title = pickTitle(a);
+      const det = pickDetails(a);
+      const preview = det.length > 90 ? (det.slice(0, 90) + "…") : det;
+
+      const conf = pickConf(a);
+      const confTxt = (conf === null ? "—" : (conf + "%"));
+
+      return `
+        <button class="ai-item" data-i="${idx}">
+          <div class="ai-item-top">
+            <div class="ai-item-name">${title}</div>
+            <div>${badgeHtml(sev)}</div>
+          </div>
+          <div class="ai-item-sub">${preview || "—"}</div>
+          <div class="ai-item-meta">
+            <span>IP: <b style="color:rgba(235,250,255,0.92)">${ip}</b></span>
+            <span>Model: <b style="color:rgba(235,250,255,0.92)">${pickModel(a)}</b></span>
+            <span>Conf: <b style="color:rgba(235,250,255,0.92)">${confTxt}</b></span>
+            <span>${fmtTs(a.ts)}</span>
+          </div>
+        </button>
+      `;
+    }).join("");
+
+    elList.querySelectorAll(".ai-item").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const i = parseInt(btn.getAttribute("data-i"), 10);
+        const a = filtered[i];
+        if(!a) return;
+        showDetails(a);
+      });
+    });
+
+    // Auto-select first item if nothing selected yet
+    if(filtered.length && dTitle.textContent === "—"){
+      showDetails(filtered[0]);
+    }
+  }
+
+  function showDetails(a){
+    const sev = (safe(a.severity) || "INFO").toUpperCase();
+    sevBadge.className = `ai-badge ai-b-${sev}`;
+    sevBadge.textContent = sev;
+
+    dTitle.textContent = pickTitle(a);
+    dIP.textContent = pickIP(a);
+    dModel.textContent = pickModel(a);
+
+    const conf = pickConf(a);
+    dConfText.textContent = (conf === null ? "—" : (conf + "%"));
+    dConfBar.style.width = (conf === null ? "0%" : Math.max(0, Math.min(100, conf)) + "%");
+
+    const feats = buildFeatures(a);
+
+    if(!feats || !feats.length){
+      dFeats.innerHTML = `<div class="ai-small">No explainability data available.</div>`;
+    }else{
+      dFeats.innerHTML = feats.map(x => `
+        <div class="ai-feat" style="
+            display:grid;
+            grid-template-columns:200px 1fr;
+            column-gap:16px;
+            align-items:center;
+            padding:8px 0;
+            border-bottom:1px solid rgba(255,255,255,0.06);
+        ">
+            <div class="name" style="font-weight:600; opacity:0.9; padding-left:14px;">
+              ${safe(x.feature || x.name || "reason")}
+            </div>
+
+            <div class="w" style="text-align:left; opacity:0.85;">
+              ${safe(x.value || x.weight || "")}
+            </div>
+       </div>
+     `).join("");
+    }
+
+    const summary = a.summary || pickDetails(a) || "No summary.";
+    dSummary.textContent = summary;
+
+    dRaw.textContent = JSON.stringify(a.meta || a.raw || a, null, 2);
+
+    // Suggest action based on severity/confidence
+    const action = (sev === "CRITICAL" || sev === "HIGH")
+      ? "Immediate: Isolate device, review recent connections, confirm IOC indicators, and raise incident ticket."
+      : "Investigate: Monitor traffic, validate baseline behavior, and confirm if this is a false positive.";
+    dAction.textContent = action;
+  }
+
+  // ===== Chart (sparkline-like line chart) =====
+  function buildConfTrend(items){
+    // take last 25 items (sorted by ts ascending)
+    const sorted = items.slice().sort((a,b)=>Number(a.ts||0)-Number(b.ts||0)).slice(-25);
+    const labels = sorted.map(x => {
+      const d = new Date(Number(x.ts||0));
+      return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    });
+    const vals = sorted.map(x => {
+      const c = pickConf(x);
+      return (c === null ? 0 : c);
+    });
+    return { labels: labels.length?labels:["—"], values: vals.length?vals:[0] };
+  }
+
+  function renderChart(items){
+    const canvas = document.getElementById("aiChart");
+    if(!canvas) return;
+
+    if(!window.Chart){
+      canvas.parentElement.innerHTML = `<div class="ai-pre">Chart.js not loaded.</div>`;
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
+    const dist = buildConfTrend(items);
+
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height || 220);
+    grad.addColorStop(0, "rgba(0, 234, 255, 0.35)");
+    grad.addColorStop(1, "rgba(0, 234, 255, 0.02)");
+
+    const neonGlowPlugin = {
+      id: "neonGlow",
+      beforeDatasetsDraw(chart) {
+        const { ctx } = chart;
+        ctx.save();
+        ctx.shadowColor = "rgba(0, 234, 255, 0.55)";
+        ctx.shadowBlur = 16;
+      },
+      afterDatasetsDraw(chart) {
+        chart.ctx.restore();
+      }
+    };
+
+    if(chartObj) chartObj.destroy();
+
+    chartObj = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: dist.labels,
+        datasets: [{
+          label: "Confidence",
+          data: dist.values,
+          fill: true,
+          backgroundColor: grad,
+          borderColor: "rgba(0,234,255,0.95)",
+          borderWidth: 2,
+          tension: 0.35,
+          pointRadius: 0,
+          pointHitRadius: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "rgba(0,0,0,0.75)",
+            borderColor: "rgba(0,234,255,0.35)",
+            borderWidth: 1,
+            titleColor: "rgba(235,250,255,0.95)",
+            bodyColor: "rgba(235,250,255,0.90)",
+            displayColors: false,
+            padding: 12,
+            callbacks: { label: (c) => ` ${c.parsed.y}% confidence` }
+          }
+        },
+        scales: {
+          x: { ticks: { color: "rgba(235,250,255,0.70)" }, grid: { display:false } },
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: { color: "rgba(235,250,255,0.60)", stepSize: 20 },
+            grid: { color: "rgba(255,255,255,0.06)" }
+          }
+        }
+      },
+      plugins: [neonGlowPlugin]
+    });
+
+    elLastChart.textContent = new Date().toLocaleString();
+  }
+
+  async function refresh(){
+    try{
+      const res = await fetch("/api/ai-threats");
+      const data = await res.json();
+
+      rawItems = (data.items || []).slice(0,250);
+
+      renderKPIs(rawItems);
+      renderList();
+
+      // chart only every 5 mins, but manual refresh forces it
+      const nowMs = Date.now();
+      if(nowMs - lastChartUpdate >= CHART_MS){
+        renderChart(rawItems);
+        lastChartUpdate = nowMs;
+      }
+
+      elLastUI.textContent = new Date().toLocaleString();
+
+    }catch(e){
+      elLastUI.textContent = "Error";
+      elList.innerHTML = `<div class="ai-small">Could not load AI detections. Check /api/ai-threats route.</div>`;
+    }
+  }
+
+  elSearch.addEventListener("input", renderList);
+  btnRefresh.addEventListener("click", () => {
+    lastChartUpdate = 0; // force chart refresh
+    refresh();
+  });
+
+  // First load + auto refresh
+  refresh();
+  setInterval(refresh, REFRESH_MS);
+</script>
+
+{% endblock %}

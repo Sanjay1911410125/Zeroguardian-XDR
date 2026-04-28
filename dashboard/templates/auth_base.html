@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{{ title if title else "ZeroGuardian-XDR" }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="zg-bg text-slate-200">
+  <div class="zg-blob zg-blob-cyan"></div>
+  <div class="zg-blob zg-blob-red"></div>
+
+  <div class="zg-login-bg">
+    <div class="zg-login-wrap">
+      <div class="zg-login-card">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,55 @@
+from flask import Flask, render_template
+from core.orchestrator import collect_all
+
+app = Flask(__name__)
+
+def _slice_devices(devs, limit=30):
+    # keep UI clean
+    return (devs or [])[:limit]
+
+@app.route("/")
+def dashboard():
+    data = collect_all()
+    devices = data.get("devices", [])
+    traffic = data.get("traffic", {})
+    anomalies = data.get("anomalies", [])
+
+    return render_template(
+        "dashboard.html",
+        page="dashboard",
+        devices=_slice_devices(devices, 8),
+        devices_count=len(devices),
+        traffic=traffic,
+        anomalies=anomalies,
+    )
+
+@app.route("/devices")
+def devices():
+    data = collect_all()
+    devices = data.get("devices", [])
+    return render_template("devices.html", page="devices", devices=_slice_devices(devices, 120), devices_count=len(devices))
+
+@app.route("/threats")
+def threats():
+    # In your project, this page can later map to correlated anomalies + defense actions
+    data = collect_all()
+    anomalies = data.get("anomalies", [])
+    return render_template("threats.html", page="threats", anomalies=anomalies)
+
+@app.route("/ai-threats")
+def ai_threats():
+    data = collect_all()
+    anomalies = data.get("anomalies", [])
+    # Treat anomalies as AI findings for now (behavior based)
+    return render_template("ai_threats.html", page="ai", anomalies=anomalies)
+
+@app.route("/logs")
+def logs():
+    # You can later pull real logs from logs/ folder
+    data = collect_all()
+    traffic = data.get("traffic", {})
+    return render_template("logs.html", page="logs", traffic=traffic)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
+

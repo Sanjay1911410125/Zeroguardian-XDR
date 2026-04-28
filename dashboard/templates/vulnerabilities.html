@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="zg-page-header">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+    <div>
+      <h1 class="zg-page-title">Vulnerability Scanner</h1>
+      <p class="zg-page-sub">Scan network devices for open ports, CVEs, and misconfigurations</p>
+    </div>
+    <div style="display:flex;gap:.75rem;align-items:center;">
+      <div id="scan-status-pill" style="display:none;
+        padding:.4rem 1rem;border-radius:20px;font-size:.8rem;font-weight:600;
+        background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3);">
+        ⟳ Scanning...
+      </div>
+      <button id="scan-btn" class="zg-btn zg-btn-primary" onclick="startScan()">
+        🔍 Start Vulnerability Scan
+      </button>
+    </div>
+  </div>
+</div>
+
+<div style="padding:0 1.5rem 3rem;">
+
+  <!-- ── SUMMARY CARDS ────────────────────────────────────────────────────── -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem;">
+    <div class="zg-stat-card">
+      <div class="zg-stat-label">Devices Scanned</div>
+      <div class="zg-stat-val" id="s-devices">—</div>
+    </div>
+    <div class="zg-stat-card" style="border-color:rgba(239,68,68,.3);">
+      <div class="zg-stat-label">Critical</div>
+      <div class="zg-stat-val" id="s-critical" style="color:#ef4444;">—</div>
+    </div>
+    <div class="zg-stat-card" style="border-color:rgba(249,115,22,.3);">
+      <div class="zg-stat-label">High</div>
+      <div class="zg-stat-val" id="s-high" style="color:#f97316;">—</div>
+    </div>
+    <div class="zg-stat-card" style="border-color:rgba(245,158,11,.3);">
+      <div class="zg-stat-label">Medium</div>
+      <div class="zg-stat-val" id="s-medium" style="color:#f59e0b;">—</div>
+    </div>
+    <div class="zg-stat-card">
+      <div class="zg-stat-label">Last Scan</div>
+      <div id="s-time" style="font-size:.78rem;color:#64748b;margin-top:.3rem;">Never</div>
+    </div>
+  </div>
+
+  <!-- ── RESULTS TABLE ─────────────────────────────────────────────────────── -->
+  <div class="zg-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+      <div style="font-size:1rem;font-weight:700;color:#e2e8f0;">Vulnerability Findings</div>
+      <div style="display:flex;gap:.5rem;">
+        <button onclick="filterBySev('ALL')"      class="filter-btn active" data-sev="ALL">All</button>
+        <button onclick="filterBySev('CRITICAL')" class="filter-btn" data-sev="CRITICAL">Critical</button>
+        <button onclick="filterBySev('HIGH')"     class="filter-btn" data-sev="HIGH">High</button>
+        <button onclick="filterBySev('MEDIUM')"   class="filter-btn" data-sev="MEDIUM">Medium</button>
+      </div>
+    </div>
+
+    <div id="no-scan-msg" style="text-align:center;padding:3rem;color:#475569;">
+      <div style="font-size:2.5rem;margin-bottom:1rem;">🔍</div>
+      <div style="font-size:1rem;font-weight:600;color:#64748b;">No scan results yet</div>
+      <div style="font-size:.85rem;margin-top:.5rem;">Click "Start Vulnerability Scan" to scan your network devices</div>
+    </div>
+
+    <div id="results-container" style="display:none;">
+      <table style="width:100%;border-collapse:collapse;" id="vuln-table">
+        <thead>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.08);">
+            <th class="zg-th">Severity</th>
+            <th class="zg-th">Device IP</th>
+            <th class="zg-th">Port / Service</th>
+            <th class="zg-th">CVE / Issue</th>
+            <th class="zg-th">CVSS</th>
+            <th class="zg-th">Description</th>
+          </tr>
+        </thead>
+        <tbody id="vuln-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.zg-page-header {
+  padding:2rem 3rem 1.5rem;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  margin-bottom:1.5rem;
+}
+.zg-page-title { font-size:1.6rem;font-weight:700;color:#e2e8f0;margin:0 0 .3rem; }
+.zg-page-sub   { font-size:.88rem;color:#64748b;margin:0; }
+
+.zg-stat-card {
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  padding:1.25rem;
+}
+.zg-stat-label { font-size:.75rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em; }
+.zg-stat-val   { font-size:2rem;font-weight:700;color:#e2e8f0;margin-top:.3rem; }
+
+.zg-card {
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+  padding:1.75rem;
+}
+
+.zg-th {
+  text-align:left;padding:.6rem 1rem;
+  font-size:.72rem;font-weight:600;color:#64748b;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.vuln-row td { padding:.85rem 1rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top; }
+.vuln-row:last-child td { border-bottom:none; }
+.vuln-row:hover td { background:rgba(255,255,255,.02); }
+
+.sev-badge {
+  padding:.25rem .65rem;border-radius:6px;font-size:.72rem;font-weight:700;
+  letter-spacing:.04em;white-space:nowrap;
+}
+.sev-CRITICAL { background:rgba(239,68,68,.15); color:#ef4444; border:1px solid rgba(239,68,68,.3); }
+.sev-HIGH     { background:rgba(249,115,22,.15);color:#f97316; border:1px solid rgba(249,115,22,.3); }
+.sev-MEDIUM   { background:rgba(245,158,11,.15);color:#f59e0b; border:1px solid rgba(245,158,11,.3); }
+.sev-LOW      { background:rgba(148,163,184,.1);color:#94a3b8; border:1px solid rgba(148,163,184,.2); }
+
+.cve-badge {
+  font-size:.72rem;font-family:monospace;
+  background:rgba(56,189,248,.1);color:#38bdf8;
+  padding:.15rem .5rem;border-radius:4px;
+  border:1px solid rgba(56,189,248,.2);
+}
+
+.filter-btn {
+  padding:.3rem .75rem;border-radius:6px;font-size:.75rem;font-weight:600;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);
+  color:#94a3b8;cursor:pointer;transition:all .2s;
+}
+.filter-btn.active, .filter-btn:hover {
+  background:rgba(56,189,248,.15);color:#38bdf8;border-color:rgba(56,189,248,.3);
+}
+
+.zg-btn { display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.25rem;
+  border-radius:8px;border:none;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s; }
+.zg-btn-primary { background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white; }
+.zg-btn-primary:hover { background:linear-gradient(135deg,#38bdf8,#0ea5e9);transform:translateY(-1px); }
+.zg-btn:disabled { opacity:.5;cursor:not-allowed;transform:none !important; }
+</style>
+
+<script>
+let allVulns = [];
+let pollTimer = null;
+
+// Load existing results on page load
+window.addEventListener('DOMContentLoaded', loadExistingResults);
+
+async function loadExistingResults() {
+  try {
+    const r = await fetch('/api/vulnscan/results');
+    const data = await r.json();
+    if (data.vulns && data.vulns.length > 0) {
+      allVulns = data.vulns;
+      renderSummary(data.summary);
+      renderTable(allVulns);
+    }
+  } catch(e) {}
+}
+
+async function startScan() {
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true;
+  btn.textContent = '⟳ Starting scan...';
+  document.getElementById('scan-status-pill').style.display = 'flex';
+
+  try {
+    const r    = await fetch('/api/vulnscan/start', { method: 'POST' });
+    const data = await r.json();
+    if (data.error) {
+      alert(data.error);
+      btn.disabled = false;
+      btn.innerHTML = '🔍 Start Vulnerability Scan';
+      return;
+    }
+    btn.textContent = `⟳ Scanning ${data.devices} devices...`;
+    pollTimer = setInterval(pollStatus, 3000);
+  } catch(e) {
+    alert('Failed to start scan: ' + e);
+    btn.disabled = false;
+    btn.innerHTML = '🔍 Start Vulnerability Scan';
+  }
+}
+
+async function pollStatus() {
+  try {
+    const r    = await fetch('/api/vulnscan/status');
+    const data = await r.json();
+
+    if (!data.running) {
+      clearInterval(pollTimer);
+      document.getElementById('scan-btn').disabled = false;
+      document.getElementById('scan-btn').innerHTML = '🔍 Start Vulnerability Scan';
+      document.getElementById('scan-status-pill').style.display = 'none';
+
+      if (data.result && data.result.vulns) {
+        allVulns = data.result.vulns;
+        renderSummary(data.result);
+        renderTable(allVulns);
+      }
+    }
+  } catch(e) {}
+}
+
+function renderSummary(s) {
+  document.getElementById('s-devices').textContent  = s.devices_scanned || 0;
+  document.getElementById('s-critical').textContent = s.critical || 0;
+  document.getElementById('s-high').textContent     = s.high || 0;
+  document.getElementById('s-medium').textContent   = s.medium || 0;
+  document.getElementById('s-time').textContent     = s.scan_time || '—';
+}
+
+function renderTable(vulns) {
+  document.getElementById('no-scan-msg').style.display    = 'none';
+  document.getElementById('results-container').style.display = 'block';
+
+  const tbody = document.getElementById('vuln-tbody');
+  tbody.innerHTML = '';
+
+  if (!vulns.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#64748b;">No vulnerabilities found — network looks clean ✅</td></tr>';
+    return;
+  }
+
+  vulns.forEach(v => {
+    const sev  = (v.severity || 'LOW').toUpperCase();
+    const cvss = v.cvss_score ? `<span style="font-weight:700;color:${cvssColor(v.cvss_score)}">${v.cvss_score}</span>` : '—';
+    const cve  = v.cve_id ? `<span class="cve-badge">${v.cve_id}</span><br><small style="color:#94a3b8;">${v.cve_name||''}</small>` : `<span style="color:#94a3b8;font-size:.82rem;">${v.cve_name||'—'}</span>`;
+
+    const tr = document.createElement('tr');
+    tr.className = 'vuln-row';
+    tr.dataset.sev = sev;
+    tr.innerHTML = `
+      <td><span class="sev-badge sev-${sev}">${sev}</span></td>
+      <td style="font-family:monospace;font-size:.85rem;color:#38bdf8;">${v.ip}</td>
+      <td style="font-size:.85rem;">
+        <span style="font-weight:600;color:#e2e8f0;">${v.port}</span>
+        <span style="color:#64748b;"> / ${v.service||'?'}</span>
+        ${v.version ? `<br><small style="color:#475569;">${v.version}</small>` : ''}
+      </td>
+      <td>${cve}</td>
+      <td>${cvss}</td>
+      <td style="font-size:.82rem;color:#94a3b8;max-width:300px;">${v.description||'—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function cvssColor(score) {
+  if (score >= 9)   return '#ef4444';
+  if (score >= 7)   return '#f97316';
+  if (score >= 4)   return '#f59e0b';
+  return '#94a3b8';
+}
+
+function filterBySev(sev) {
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.sev === sev);
+  });
+  document.querySelectorAll('.vuln-row').forEach(row => {
+    row.style.display = (sev === 'ALL' || row.dataset.sev === sev) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

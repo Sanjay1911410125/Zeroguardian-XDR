@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="zg-notif-wrap">
+
+  <div class="zg-notif-head">
+    <div>
+      <div class="zg-h1">Notifications</div>
+      <div class="zg-h2">Real-time alerts + permanent history (stored on disk)</div>
+    </div>
+
+    <div class="zg-notif-controls">
+      <input id="zgSearch" class="zg-notif-search" placeholder="Search (title / message / level / time)..." />
+      <select id="zgLevel" class="zg-notif-filter">
+        <option value="ALL">All Levels</option>
+        <option value="CRITICAL">CRITICAL</option>
+        <option value="HIGH">HIGH</option>
+        <option value="MEDIUM">MEDIUM</option>
+        <option value="LOW">LOW</option>
+        <option value="INFO">INFO</option>
+      </select>
+      <button id="zgClearView" class="btn mini" type="button">Clear View</button>
+    </div>
+  </div>
+
+  <div class="zg-notif-grid">
+    <!-- List -->
+    <div class="zg-notif-list" id="zgNotifList"></div>
+
+    <!-- Details -->
+    <div class="zg-notif-detail">
+      <div class="zg-notif-detail-title">Notification Details</div>
+      <div class="zg-notif-detail-sub" id="zgDetailTime">Click a notification to see full message.</div>
+
+      <div class="zg-notif-detail-box">
+        <div class="zg-notif-detail-row">
+          <div class="zg-notif-k">Level</div>
+          <div class="zg-notif-v" id="zgDetailLevel">—</div>
+        </div>
+        <div class="zg-notif-detail-row">
+          <div class="zg-notif-k">Title</div>
+          <div class="zg-notif-v" id="zgDetailTitle">—</div>
+        </div>
+        <div class="zg-notif-detail-row">
+          <div class="zg-notif-k">Message</div>
+          <div class="zg-notif-v zg-notif-pre" id="zgDetailMessage">—</div>
+        </div>
+        <div class="zg-notif-detail-row">
+          <div class="zg-notif-k">Meta</div>
+          <div class="zg-notif-v zg-notif-pre" id="zgDetailMeta">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const listEl = document.getElementById("zgNotifList");
+  const searchEl = document.getElementById("zgSearch");
+  const levelEl  = document.getElementById("zgLevel");
+  const clearBtn = document.getElementById("zgClearView");
+
+  const dTime = document.getElementById("zgDetailTime");
+  const dLevel = document.getElementById("zgDetailLevel");
+  const dTitle = document.getElementById("zgDetailTitle");
+  const dMsg = document.getElementById("zgDetailMessage");
+  const dMeta = document.getElementById("zgDetailMeta");
+
+  let lastTs = 0;
+  let allItems = []; // page history (never erased unless you click Clear View)
+
+  function fmt(ts){
+    const d = new Date(ts);
+    return d.toLocaleString(); // shows date + time clearly
+  }
+
+  function badge(level){
+    const lv = (level || "INFO").toUpperCase();
+    return `<span class="zg-badge zg-b-${lv}">${lv}</span>`;
+  }
+
+  function matchesFilter(item){
+    const q = (searchEl.value || "").trim().toLowerCase();
+    const lv = (levelEl.value || "ALL").toUpperCase();
+
+    if (lv !== "ALL" && (item.level || "").toUpperCase() !== lv) return false;
+
+    if (!q) return true;
+
+    const blob = [
+      item.level, item.title, item.message, fmt(item.ts),
+      JSON.stringify(item.meta || {})
+    ].join(" ").toLowerCase();
+
+    return blob.includes(q);
+  }
+
+  function render(){
+    const filtered = allItems.filter(matchesFilter).slice().reverse(); // newest first
+
+    if (!filtered.length){
+      listEl.innerHTML = `<div class="zg-empty">No notifications found.</div>`;
+      return;
+    }
+
+    listEl.innerHTML = filtered.map((n, idx) => {
+      const safeTitle = (n.title || "Notification");
+      const safeMsg = (n.message || "");
+      const preview = safeMsg.length > 90 ? (safeMsg.slice(0, 90) + "…") : safeMsg;
+
+      return `
+        <button class="zg-notif-item" data-i="${idx}">
+          <div class="zg-notif-top">
+            ${badge(n.level)}
+            <div class="zg-notif-time">${fmt(n.ts)}</div>
+          </div>
+          <div class="zg-notif-title">${safeTitle}</div>
+          <div class="zg-notif-preview">${preview}</div>
+        </button>
+      `;
+    }).join("");
+
+    // click handling
+    listEl.querySelectorAll(".zg-notif-item").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.getAttribute("data-i"), 10);
+        const n = filtered[idx];
+        if (!n) return;
+
+        dTime.textContent = fmt(n.ts);
+        dLevel.textContent = (n.level || "INFO").toUpperCase();
+        dTitle.textContent = n.title || "Notification";
+        dMsg.textContent = n.message || "";
+        dMeta.textContent = JSON.stringify(n.meta || {}, null, 2);
+      });
+    });
+  }
+
+  async function fetchNotifs(){
+    try{
+      // since=lastTs means we only append new ones (real-time)
+      const res = await fetch(`/api/notifications?since=${lastTs}&limit=1000`);
+      const data = await res.json();
+
+      if (data && Array.isArray(data.items) && data.items.length){
+        // append new items; don't erase history
+        for (const it of data.items){
+          allItems.push(it);
+        }
+        lastTs = Math.max(lastTs, data.last_ts || lastTs);
+        render();
+      } else {
+        // still update lastTs if server sends it
+        if (data && data.last_ts) lastTs = Math.max(lastTs, data.last_ts);
+      }
+    } catch(e){
+      // ignore transient errors
+    }
+  }
+
+  async function boot(){
+    // first load: get full history
+    const res = await fetch(`/api/notifications?since=0&limit=1000`);
+    const data = await res.json();
+    allItems = (data.items || []);
+    lastTs = data.last_ts || 0;
+    render();
+
+    // real-time polling every 2 seconds
+    setInterval(fetchNotifs, 2000);
+  }
+
+  searchEl.addEventListener("input", render);
+  levelEl.addEventListener("change", render);
+
+  clearBtn.addEventListener("click", () => {
+    // Clear only the UI view; disk history remains safe.
+    allItems = [];
+    lastTs = 0;
+    dTime.textContent = "Click a notification to see full message.";
+    dLevel.textContent = "—";
+    dTitle.textContent = "—";
+    dMsg.textContent = "—";
+    dMeta.textContent = "—";
+    render();
+    // reload full history again (optional)
+    boot();
+  });
+
+  boot();
+</script>
+
+{% endblock %}

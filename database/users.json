@@ -1,0 +1,23 @@
+{
+  "admin": {
+    "email": "shivanisree7425@gmail.com",
+    "role": "admin",
+    "pw_hash": "scrypt:32768:8:1$7ABYb6ypfwZ82R8R$ce2445e07fbc05ad6ac6b21c242a95870632442756eb8ddf264320d081a793b42d07fb549247bea43df0963a6404f3a5e810ee72eebf1c079893b4386642f826"
+  },
+  "analyst1": {
+    "email": "analyst1@gmail.com",
+    "role": "analyst",
+    "pw_hash": ""
+  },
+  "sanjay": {
+    "email": "sanjaysanj480@gmail.com",
+    "role": "admin",
+    "pw_hash": "scrypt:32768:8:1$bYFTvo0TA8kvggKe$cb892bc6aa4e6d257cb006479ca727bf54af59e6933d26bc9b91c83851656f94ec5394709aacc790390233c074e2f23d54651e155b32bd96852256dd38c06c2e"
+  },
+  "shivanisree": {
+    "email": "shivanisree7425@gmail.com",
+    "role": "admin",
+    "pw_hash": "scrypt:32768:8:1$4Wc760owFWtznaBr$8b38dd60d121f104818256020f37513d203078bc72a2074d21ecddaeea6436fe01b6a0f8e9de0f8bf52925f99ad0f2edf826041ffe0b4aacc468ed684d1825eb",
+    "password_hash": "scrypt:32768:8:1$4Wc760owFWtznaBr$8b38dd60d121f104818256020f37513d203078bc72a2074d21ecddaeea6436fe01b6a0f8e9de0f8bf52925f99ad0f2edf826041ffe0b4aacc468ed684d1825eb"
+  }
+}

@@ -1,0 +1,11 @@
+.env
+venv/
+__pycache__/
+*.pyc
+vulnerabilities.db
+reports/
+logs/
+*.log
+models/autoencoder.keras
+models/scaler.json
+data/normal_samples.jsonl

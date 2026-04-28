@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% set header="Risk Scoring" %}
+
+{% block content %}
+
+<div class="grid grid-cols-4 gap-6 mb-8">
+  <div class="zg-card zg-pad">
+    <div class="zg-s">Overall Risk</div>
+    <div class="text-4xl font-extrabold mt-2">{{ risk_summary.overall_score if risk_summary else 0 }}</div>
+    <div class="mt-2">
+      <span class="px-3 py-1 rounded-full text-sm font-bold
+        {% if risk_summary and risk_summary.overall_level=='HIGH' %} bg-red-500/15 text-red-200 border border-red-500/30
+        {% elif risk_summary and risk_summary.overall_level=='MEDIUM' %} bg-yellow-500/15 text-yellow-200 border border-yellow-500/30
+        {% else %} bg-emerald-500/15 text-emerald-200 border border-emerald-500/30 {% endif %}">
+        {{ risk_summary.overall_level if risk_summary else "LOW" }}
+      </span>
+    </div>
+  </div>
+
+  <div class="zg-card zg-pad">
+    <div class="zg-s">High Risk Devices</div>
+    <div class="text-4xl font-extrabold mt-2">{{ risk_summary.high_count if risk_summary else 0 }}</div>
+  </div>
+
+  <div class="zg-card zg-pad">
+    <div class="zg-s">Medium Risk Devices</div>
+    <div class="text-4xl font-extrabold mt-2">{{ risk_summary.medium_count if risk_summary else 0 }}</div>
+  </div>
+
+  <div class="zg-card zg-pad">
+    <div class="zg-s">Low Risk Devices</div>
+    <div class="text-4xl font-extrabold mt-2">{{ risk_summary.low_count if risk_summary else 0 }}</div>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 gap-8">
+  <div class="zg-card zg-pad">
+    <div class="zg-title2">Top Risky Devices</div>
+    <div class="zg-s">Highest scoring devices right now.</div>
+
+    <div class="mt-4 space-y-3">
+      {% for d in (risk_summary.top_risky if risk_summary and risk_summary.top_risky else []) %}
+      <div class="flex items-center justify-between border border-slate-700/40 rounded-xl px-4 py-3 bg-slate-950/20">
+        <div>
+          <div class="font-bold">{{ d.ip }}</div>
+          <div class="text-xs text-slate-400">{{ d.state }}</div>
+        </div>
+        <div class="text-right">
+          <div class="text-2xl font-extrabold">{{ d.score }}</div>
+          <div class="text-xs font-bold
+            {% if d.level=='HIGH' %} text-red-300
+            {% elif d.level=='MEDIUM' %} text-yellow-300
+            {% else %} text-emerald-300 {% endif %}">
+            {{ d.level }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      {% if not (risk_summary and risk_summary.top_risky) %}
+        <div class="text-slate-400 text-sm">No risk data yet.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="zg-card zg-pad">
+    <div class="zg-title2">All Devices Risk Table</div>
+    <div class="zg-s">Score (0–100) with explainable reasons.</div>
+
+    <div class="mt-4 overflow-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-slate-400 border-b border-slate-700/40">
+            <th class="py-2 text-left">IP</th>
+            <th class="py-2 text-left">State</th>
+            <th class="py-2 text-left">Score</th>
+            <th class="py-2 text-left">Level</th>
+            <th class="py-2 text-left">Top Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ip, d in (risk_by_ip.items() if risk_by_ip else []) %}
+          <tr class="border-b border-slate-800/50">
+            <td class="py-2 font-semibold">{{ d.ip }}</td>
+            <td class="py-2 text-slate-300">{{ d.state }}</td>
+            <td class="py-2 font-extrabold">{{ d.score }}</td>
+            <td class="py-2 font-bold
+              {% if d.level=='HIGH' %} text-red-300
+              {% elif d.level=='MEDIUM' %} text-yellow-300
+              {% else %} text-emerald-300 {% endif %}">
+              {{ d.level }}
+            </td>
+            <td class="py-2 text-slate-300">
+              {{ d.reasons[0] if d.reasons and d.reasons|length>0 else "—" }}
+            </td>
+          </tr>
+          {% endfor %}
+          {% if not risk_by_ip %}
+          <tr><td class="py-3 text-slate-400" colspan="5">No devices yet.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

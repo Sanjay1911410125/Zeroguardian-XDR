@@ -1,0 +1,594 @@
+import os, json, time, random
+import threading
+from functools import wraps
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from werkzeug.security import generate_password_hash, check_password_hash
+from core.orchestrator import collect_all
+from datetime import datetime, timezone
+from core.live_logs import STORE, start_live_capture
+from signature_engine import detect_known_threat
+from ai_model import predict_threat
+import sqlite3
+
+app = Flask(__name__)
+from config.security import init_security
+from dashboard.settings_routes import register_settings_routes
+from dashboard.vuln_routes import register_vuln_routes
+from dashboard.mitre_routes import register_mitre_routes
+from dashboard.report_routes import register_report_routes
+from dashboard.feed_routes import register_feed_routes
+init_security(app)
+register_settings_routes(app)
+register_vuln_routes(app)
+register_mitre_routes(app)
+register_report_routes(app)
+register_feed_routes(app)
+
+CAPTURE_INTERFACE = None   # example: "enp0s3" or "eth0" or "wlan0"
+CAPTURE_WINDOW_SEC = 6
+
+_systems_started = False
+
+def start_background_systems():
+    global _systems_started
+    if _systems_started:
+        return
+    _systems_started = True
+    try:
+        from core.live_logs import start_live_capture
+        start_live_capture(interface=CAPTURE_INTERFACE, window_sec=CAPTURE_WINDOW_SEC)
+        print("[Startup] Scapy live capture started ✅")
+    except Exception as e:
+        print(f"[Startup] Scapy capture not started: {e}")
+    try:
+        from core.orchestrator import start_worker
+        start_worker()
+        print("[Startup] Background worker started ✅")
+    except Exception as e:
+        print(f"[Startup] Worker not started: {e}")
+
+@app.before_request
+def _ensure_systems_started():
+    pass
+
+# Start immediately at launch — not on first request
+start_background_systems()
+from core.threat_feeds import start_feed_updater
+start_feed_updater()
+
+NOTIFS = []
+
+def push_notif(level, title, message, meta=None):
+    now = datetime.now(timezone.utc)
+    ts_ms = int(now.timestamp() * 1000)
+
+    item = {
+        "ts": ts_ms,
+        "time": now.strftime("%Y-%m-%d %H:%M:%S"),
+        "level": level,
+        "title": title,
+        "message": message,
+        "meta": meta or {}
+    }
+
+    NOTIFS.append(item)
+    return ts_ms
+
+# --- SIMPLE USER DB (final-year demo friendly) ---
+USERS_FILE = os.path.join("database", "users.json")
+
+def load_users():
+    if not os.path.exists(USERS_FILE):
+        os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
+        with open(USERS_FILE, "w") as f:
+            json.dump({}, f, indent=2)
+    with open(USERS_FILE, "r") as f:
+        return json.load(f)
+
+def save_users(users):
+    os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
+    with open(USERS_FILE, "w") as f:
+        json.dump(users, f, indent=2)
+
+def login_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not session.get("username"):
+            return redirect(url_for("login"))
+        return fn(*args, **kwargs)
+    return wrapper
+
+def admin_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        username = session.get("username")
+        if not username:
+            return redirect(url_for("login"))
+
+        users = load_users()
+        u = users.get(username, {})
+        role = (u.get("role") or "").lower()
+
+        if role != "admin":
+            return "Forbidden", 403
+
+        return fn(*args, **kwargs)
+    return wrapper
+
+def _slice_devices(devs, n):
+    try:
+        return (devs or [])[:n]
+    except Exception:
+        return []
+
+# ----------------------------
+# NOTIFICATIONS (in-memory)
+# ----------------------------
+NOTIFS = []  # list of dicts: {ts, level, title, message, meta}
+MAX_NOTIFS = 500
+
+@app.route("/notifications")
+@login_required
+def notifications_page():
+    # Mark all as seen when page is opened
+    last_seen = NOTIFS[-1]["ts"] if NOTIFS else 0
+    session["last_seen_ts"] = last_seen
+
+    items = list(reversed(NOTIFS[-80:]))  # latest 80
+    return render_template(
+        "notifications.html",
+        page="notifications",
+        items=items,
+        user=session.get("username", "admin")
+    )
+
+@app.route("/api/notifications")
+@login_required
+def api_notifications():
+    # returns notifications newer than "since" + unseen count for badge
+    try:
+        since = int(request.args.get("since", 0))
+    except Exception:
+        since = 0
+
+    try:
+        limit = int(request.args.get("limit", 200))
+    except Exception:
+        limit = 200
+
+    limit = max(1, min(limit, 500))
+
+    # 1) items newer than since
+    items = [n for n in NOTIFS if int(n.get("ts", 0)) > since]
+    items = items[-limit:]
+
+    # 2) last_ts cursor
+    last_ts = items[-1]["ts"] if items else since
+
+    # 3) unseen count (based on session marker)
+    last_seen = int(session.get("last_seen_ts", 0) or 0)
+    unseen_count = sum(1 for n in NOTIFS if int(n.get("ts", 0)) > last_seen)
+
+    return jsonify({
+        "last_ts": last_ts,
+        "items": items,
+        "unseen_count": unseen_count
+    })
+
+# ----------------------------
+# AUTH
+# ----------------------------
+@app.route("/")
+def root():
+    return redirect(url_for("dashboard"))
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        users = load_users()
+        username = (request.form.get("username") or "").strip()
+        password = (request.form.get("password") or "").strip()
+        u = users.get(username)
+        if u and check_password_hash(u.get("pw_hash", ""), password):
+            session["username"] = username
+            push_notif("INFO", "Login", f"{username} logged in", {"user": username})
+            return redirect(url_for("dashboard"))
+        return render_template("login.html", error="Invalid credentials")
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+# ----------------------------
+# ✅ DEDUP CACHE (THE FIX)
+# ----------------------------
+# Prevents the SAME anomaly notification from being pushed again & again
+# (which was making your realtime trend look like it's constantly changing).
+_LAST_ANOMALY_PUSH = {}  # key -> last_push_ts_ms
+_ANOMALY_DEDUP_WINDOW_MS = 60_000  # 60 seconds (tweak if needed)
+
+# ----------------------------
+# DASHBOARD
+# ----------------------------   
+@app.route('/')
+def home():
+    return redirect(url_for("dashboard"))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    data = collect_all()
+    devices = data.get("devices", [])
+    traffic = data.get("traffic", {})
+    anomalies = data.get("anomalies", [])
+
+    # generate some notifications from runtime signals (demo but real-based)
+    # ✅ FIX: dedup so same anomaly doesn't create "new" notifications each time dashboard loads
+    now_ms = int(time.time() * 1000)
+    if isinstance(anomalies, list):
+        for a in anomalies[:10]:
+            sev = (a.get("severity") or "low").upper()
+            title = a.get("type") or "Anomaly"
+            ip = a.get("ip") or "unknown"
+
+            # Dedup key based on what makes this "the same" anomaly
+            key = f"{title}|{ip}|{sev}"
+            last = _LAST_ANOMALY_PUSH.get(key, 0)
+
+            if (now_ms - last) >= _ANOMALY_DEDUP_WINDOW_MS:
+                push_notif(
+                    "HIGH" if sev in ("HIGH", "CRITICAL") else "MEDIUM",
+                    "Anomaly detected",
+                    f"{title} on {ip} ({sev})",
+                    {"ip": ip, "severity": sev}
+                )
+                _LAST_ANOMALY_PUSH[key] = now_ms
+
+    return render_template(
+        "dashboard.html",
+        page="dashboard",
+        devices=_slice_devices(devices, 8),
+        devices_count=len(devices),
+        traffic=traffic,
+        anomalies=anomalies,
+        user=session.get("username", "admin"),
+    )
+
+@app.route("/devices")
+@login_required
+def devices():
+    data = collect_all()
+    devices = data.get("devices", [])
+    return render_template(
+        "devices.html",
+        page="devices",
+        devices=_slice_devices(devices, 120),
+        devices_count=len(devices),
+        user=session.get("username", "admin"),
+    )
+
+@app.route("/threats")
+@login_required
+def threats():
+    data = collect_all()
+    anomalies = data.get("anomalies", [])
+    return render_template(
+        "threats.html",
+        page="threats",
+        anomalies=anomalies,
+        user=session.get("username", "admin")
+    )
+
+@app.route("/api/threats")
+@login_required
+def api_threats():
+    data = collect_all()
+    anomalies = data.get("anomalies", []) or []
+    # send newest first + limit so page is fast
+    anomalies = list(reversed(anomalies))[:250]
+    return jsonify({"items": anomalies})
+
+@app.route("/ai-threats")
+@login_required
+def ai_threats():
+    return render_template("ai_threats.html", page="ai", user=session.get("username", "admin"))
+
+@app.route("/api/ai-threats")
+@login_required
+def api_ai_threats():
+    data = collect_all()
+    anomalies = data.get("anomalies", []) or []
+
+    items = []
+    now_ms = int(time.time() * 1000)
+
+    for a in anomalies[:250]:
+        sev_raw = (a.get("severity") or a.get("level") or "INFO")
+        sev = str(sev_raw).upper()
+
+        # confidence can be 0..1 or 0..100
+        conf = a.get("confidence", a.get("score", None))
+        try:
+            conf = float(conf) if conf is not None else None
+            if conf is not None and conf <= 1:
+                conf = conf * 100
+            if conf is not None:
+                conf = int(round(conf))
+        except Exception:
+            conf = None
+
+        ip = a.get("ip") or a.get("src_ip") or a.get("device_ip") or a.get("host") or "unknown"
+        title = a.get("title") or a.get("type") or a.get("name") or "AI Detection"
+        details = a.get("details") or a.get("reason") or a.get("description") or a.get("message") or ""
+
+        model = a.get("model") or a.get("detector") or a.get("engine") or "Behavior Analytics"
+
+        # If your anomalies don't carry timestamp, we generate a stable-ish one
+        ts = a.get("ts") or a.get("timestamp") or now_ms
+        try:
+            ts = int(ts)
+            # if ts looks like seconds, convert to ms
+            if ts < 10_000_000_000:
+                ts = ts * 1000
+        except Exception:
+            ts = now_ms
+
+        # Optional explainability fields (if you have)
+        features = a.get("features") or a.get("top_features") or a.get("explain") or None
+
+        # ✅ normalize features into a list so UI can render "Top reasons" nicely
+        if features is None:
+            # auto-generate simple explainability from available anomaly fields
+            details = (a.get("details") or "")
+            ip_x = (a.get("ip") or a.get("src_ip") or a.get("device_ip") or "unknown")
+            features = [
+                {"feature": "signal", "value": "behavior_deviation"},
+                {"feature": "target_ip", "value": ip_x},
+            ]
+            if details:
+                features.append({"feature": "evidence", "value": details})
+        elif isinstance(features, dict):
+            features = [{"feature": str(k), "value": str(v)} for k, v in features.items()]
+        elif isinstance(features, list):
+            # list can be strings or dicts — normalize
+            norm = []
+            for item in features:
+                if isinstance(item, dict):
+                    # allow {feature,value} or arbitrary keys
+                    if "feature" in item and "value" in item:
+                        norm.append({"feature": str(item["feature"]), "value": str(item["value"])})
+                    else:
+                        for k, v in item.items():
+                            norm.append({"feature": str(k), "value": str(v)})
+                else:
+                    norm.append({"feature": "reason", "value": str(item)})
+            features = norm
+        else:
+            features = [{"feature": "reason", "value": str(features)}]
+
+        # meta/raw for evidence
+        meta = a.get("meta") or {}
+        if not isinstance(meta, dict):
+            meta = {"meta": str(meta)}
+
+        items.append({
+            "ts": ts,
+            "severity": sev,
+            "title": title,
+            "details": details,
+            "summary": a.get("summary") or details,
+            "ip": ip,
+            "model": model,
+            "confidence": conf,
+            "features": features,   # can be list/dict; UI handles both
+            "meta": {**meta, "source": "collect_all.anomalies"}
+        })
+
+    # sort newest first
+    items.sort(key=lambda x: int(x.get("ts", 0)), reverse=True)
+
+    return jsonify({
+        "items": items[:250]
+    })
+
+@app.route("/logs")
+@login_required
+def logs():
+    data = collect_all()
+    traffic = data.get("traffic", {})
+    return render_template("logs.html", page="logs", traffic=traffic, user=session.get("username", "admin"))
+
+@app.route("/api/logs")
+@login_required
+def api_logs():
+    try:
+        data = collect_all() or {}
+        traffic = data.get("traffic", {}) or {}
+
+        duration = int(traffic.get("duration", 6) or 6)
+        packets  = int(traffic.get("packets", 0) or 0)
+        unique_ips = int(traffic.get("unique_ips", 0) or 0)
+
+        proto_raw = traffic.get("protocols", {}) or {}
+        protocols = {}
+
+        if isinstance(proto_raw, dict):
+            for k, v in proto_raw.items():
+                protocols[str(k)] = int(v or 0)
+
+        elif isinstance(proto_raw, list):
+            for p in proto_raw:
+                if not isinstance(p, dict):
+                    continue
+                name = p.get("proto") or p.get("protocol")
+                count = p.get("count", 0)
+                if name:
+                    protocols[str(name)] = int(count or 0)
+
+        raw_entries = traffic.get("entries", []) or []
+        entries = []
+
+        def _safe(v):
+            if v is None:
+                return None
+            if isinstance(v, (int, float, bool, str)):
+                return v
+            return str(v)
+
+        for e in raw_entries:
+            if isinstance(e, dict):
+                clean = {str(k): _safe(v) for k, v in e.items()}
+                entries.append(clean)
+            else:
+                entries.append({"note": _safe(e)})
+
+        return jsonify({
+            "ok": True,
+            "duration_sec": duration,
+            "packets": packets,
+            "unique_ips": unique_ips,
+            "protocols": protocols,
+            "entries": entries[-300:]
+        })
+
+    except Exception as ex:
+        print("[api_logs] error:", ex)
+        return jsonify({
+            "ok": False,
+            "error": str(ex),
+            "duration_sec": 6,
+            "packets": 0,
+            "unique_ips": 0,
+            "protocols": {},
+            "entries": []
+        }), 200
+
+@app.route("/risk")
+@login_required
+def risk():
+    data = collect_all()
+    return render_template(
+        "risk.html",
+        page="risk",
+        risk_summary=data.get("risk_summary", {}),
+        risk_by_ip=data.get("risk_by_ip", {}),
+        user=session.get("username", "admin"),
+    )
+
+@app.route("/admin")
+@admin_required
+
+def admin_panel():
+    stats = {"total_users": 1, "active_alerts": 0, "system_status": "Healthy"}
+    users = [{"username": "admin", "role": "admin", "created": "auto"}]
+    settings = {"risk_threshold": 70, "scan_interval_sec": 30}
+    logs = [{"time": "now", "action": "Admin panel opened", "user": session.get("username", "admin")}]
+
+    return render_template("admin.html", stats=stats, users=users, settings=settings, logs=logs)
+
+@app.route("/admin/create-user", methods=["POST"])
+@admin_required
+def admin_create_user():
+    users = load_users()
+
+    username = (request.form.get("username") or "").strip()
+    password = (request.form.get("password") or "").strip()
+    role = (request.form.get("role") or "analyst").strip()
+    email = (request.form.get("email") or "").strip()
+
+    if not username or not password:
+        return redirect(url_for("admin_panel"))
+
+    if username in users:
+        return redirect(url_for("admin_panel"))
+
+    # Support your current field naming style:
+    users[username] = {
+        "email": email,
+        "role": role,
+        "pw_hash": generate_password_hash(password)
+    }
+
+    # If your file uses password_hash too, keep both
+    users[username]["password_hash"] = users[username]["pw_hash"]
+
+    save_users(users)
+    return redirect(url_for("admin_panel"))
+# ----------------------------
+# FORGOT PASSWORD (OTP to terminal) - RESTORED
+# ----------------------------
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        users = load_users()
+        username = (request.form.get("username") or "").strip()
+
+        if not username or username not in users:
+            return render_template("forgot_password.html", error="User not found.")
+
+        # Generate 6-digit OTP (demo)
+        otp = str(random.randint(100000, 999999))
+        session["reset_user"] = username
+        session["reset_otp"] = otp
+        session["reset_otp_ts"] = int(time.time())
+
+        # OTP shown in terminal (your previous behavior)
+        print(f"[ZeroGuardian-XDR OTP] user={username} otp={otp}")
+
+        return redirect(url_for("reset_password"))
+
+    return render_template("forgot_password.html")
+
+
+@app.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+    if request.method == "POST":
+        users = load_users()
+
+        otp_in = (request.form.get("otp") or "").strip()
+        newpw = (request.form.get("new_password") or "").strip()
+
+        username = session.get("reset_user")
+        otp_saved = session.get("reset_otp")
+        ts = session.get("reset_otp_ts", 0)
+
+        if not username or not otp_saved:
+            return render_template("reset_password.html", error="Session expired. Try forgot password again.")
+
+        # OTP expiry: 5 minutes
+        if int(time.time()) - int(ts) > 300:
+            session.pop("reset_user", None)
+            session.pop("reset_otp", None)
+            session.pop("reset_otp_ts", None)
+            return render_template("forgot_password.html", error="OTP expired. Try again.")
+
+        if otp_in != otp_saved:
+            return render_template("reset_password.html", error="Invalid OTP.")
+
+        if not newpw:
+            return render_template("reset_password.html", error="New password required.")
+
+        # Support both keys safely (pw_hash and password_hash)
+        users.setdefault(username, {})
+        users[username]["pw_hash"] = generate_password_hash(newpw)
+
+        # if old field exists, keep it synced (optional but safe)
+        if "password_hash" in users[username]:
+            users[username]["password_hash"] = users[username]["pw_hash"]
+
+        save_users(users)
+
+        # Clear OTP session
+        session.pop("reset_user", None)
+        session.pop("reset_otp", None)
+        session.pop("reset_otp_ts", None)
+
+        return redirect(url_for("login"))
+
+    return render_template("reset_password.html")
+
+# ------------------ RUN ------------------
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=False)

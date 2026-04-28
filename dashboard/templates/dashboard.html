@@ -1,0 +1,589 @@
+{% extends "base.html" %}
+{% set title="ZeroGuardian-XDR | Dashboard" %}
+{% set header="Security Overview" %}
+
+{% block content %}
+
+<div class="zg-grid zg-grid-4">
+  <div class="zg-card zg-pad">
+    <div class="zg-k">Devices Discovered</div>
+    <div class="zg-v text-cyan-200">{{ devices_count }}</div>
+    <div class="zg-s">LAN discovery</div>
+  </div>
+
+  <div class="zg-card zg-pad">
+    <div class="zg-k">Packets Captured</div>
+    <div class="zg-v text-cyan-200">{{ traffic.total_packets or 0 }}</div>
+    <div class="zg-s">Last {{ traffic.duration_sec or 0 }} sec</div>
+  </div>
+
+  <div class="zg-card zg-pad">
+    <div class="zg-k">Top Protocol</div>
+    <div class="zg-v text-cyan-200">
+      {% if traffic.top_protocols %}{{ traffic.top_protocols[0].proto }}{% else %}—{% endif %}
+    </div>
+    <div class="zg-s">
+      {% if traffic.top_protocols %}
+        {% for p in traffic.top_protocols[:2] %}
+          <span class="zg-tag">{{ p.proto }}: {{ p.count }}</span>
+        {% endfor %}
+      {% else %}
+        No data
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="zg-card zg-pad">
+    <div class="zg-k">Anomaly Status</div>
+    <div class="zg-v {% if anomalies and anomalies[0].severity=='High' %}text-red-200{% elif anomalies and anomalies[0].severity=='Medium' %}text-yellow-200{% else %}text-green-200{% endif %}">
+      {% if anomalies %}{{ anomalies[0].severity }}{% else %}—{% endif %}
+    </div>
+    <div class="zg-s">Behavior-based detection</div>
+  </div>
+</div>
+
+<!-- charts row -->
+<div class="zg-grid zg-grid-2">
+  <div class="zg-card zg-pad">
+    <div class="zg-row">
+      <div class="zg-title2">Anomaly Trend</div>
+      <div class="zg-miniTag">Last 6 points</div>
+    </div>
+    <div class="zg-chartbox">
+      <canvas id="anomalyTrend"></canvas>
+    </div>
+  </div>
+
+  <div class="zg-card zg-paroto-card">
+    <div class="zg-cardhead">
+      <div class="zg-cardtitle">Protocol Breakdown</div>
+      <div class="zg-chip">Capture window</div>
+    </div>
+    <div class="zg-proto-wrap">
+      <canvas id="protoDonut"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- active attack alerts -->
+<div class="zg-card zg-pad">
+  <div class="zg-title2">Active Attack Alerts</div>
+
+  {% if anomalies and anomalies|length > 0 %}
+    <div class="zg-tablewrap">
+      <table class="zg-table zg-alerts">
+        <thead>
+          <tr>
+            <th class="col-type">Attack Type</th>
+            <th class="col-sev">Severity</th>
+            <th class="col-target">Target</th>
+            <th class="col-details">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in anomalies %}
+          <tr>
+            <td class="col-type">
+              <div class="zg-strong">{{ a.type }}</div>
+            </td>
+
+            <td class="col-sev">
+              {% set sev = (a.severity or "low")|lower %}
+              <span class="zg-badge
+                {% if sev in ["critical"] %} high
+                {% elif sev in ["high"] %} high
+                {% elif sev in ["medium", "med"] %} med
+                {% else %} low
+                {% endif %}">
+                {{ (a.severity or "LOW")|upper }}
+              </span>
+            </td>
+
+            <td class="col-target">
+              <span class="zg-mono">{{ a.ip if a.ip else "Network" }}</span>
+            </td>
+
+            <td class="col-details">
+              <div class="zg-wrap">{{ a.details }}</div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="zg-muted">No active alerts.</div>
+  {% endif %}
+</div>
+
+<!-- tables row -->
+<div class="zg-grid zg-grid-2">
+  <div class="zg-card zg-pad">
+    <div class="zg-row">
+      <div class="zg-title2">Devices (Preview)</div>
+      <a class="zg-link" href="/devices">View all →</a>
+    </div>
+
+    <div class="zg-tablewrap">
+      <table class="zg-table">
+        <thead>
+          <tr><th>IP</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% if devices and devices|length>0 %}
+            {% for d in devices %}
+            <tr>
+              <td>{{ d.ip }}</td>
+              <td><span class="zg-badge low">{{ d.state }}</span></td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="2" class="zg-muted">No devices found (mobile hotspot can block scanning).</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="zg-card zg-pad">
+    <div class="zg-row">
+      <div class="zg-title2">Anomalies</div>
+      <a class="zg-link" href="/ai-threats">AI view →</a>
+    </div>
+
+    <div class="zg-stack">
+      {% if anomalies and anomalies|length>0 %}
+        {% for a in anomalies[:5] %}
+          <div class="zg-alert">
+            <div class="zg-alert-top">
+              <div class="zg-alert-name">{{ a.type }}</div>
+              <span class="zg-badge {% if a.severity=='High' %}high{% elif a.severity=='Medium' %}med{% else %}low{% endif %}">
+                {{ a.severity }}
+              </span>
+            </div>
+            <div class="zg-alert-desc">{{ a.details }}</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="zg-muted">No anomaly data yet.</div>
+      {% endif %}
+    </div>
+  </div>
+</div><!-- Chart.js (if base.html already includes it, this will just be another load; harmless for your demo) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // ---- Guard: Chart.js loaded? ----
+    if (typeof Chart === "undefined") {
+      console.error("Chart.js not loaded. Check base.html or CDN access.");
+      return;
+    }
+
+    // ---- Canvas guards ----
+    const anomalyCanvas = document.getElementById("anomalyTrend");
+    const protoCanvas   = document.getElementById("protoDonut");
+
+    if (!anomalyCanvas) console.warn("Missing <canvas id='anomalyTrend'>");
+    if (!protoCanvas)   console.warn("Missing <canvas id='protoDonut'>");
+
+    // Give canvases a usable height (prevents invisible charts)
+    if (anomalyCanvas) anomalyCanvas.style.height = "240px";
+    if (protoCanvas) protoCanvas.style.height = "240px";
+
+    // -------------------------
+    // DATA FROM BACKEND (safe)
+    // -------------------------
+    const proto = {{ (traffic.top_protocols or [])|tojson }};
+    const protoLabels = (proto || []).map(p => p.proto);
+    const protoCounts = (proto || []).map(p => p.count);
+
+    const sevMap = { "Low": 20, "Medium": 60, "High": 90 };
+    const anomaliesList = {{ (anomalies or [])|tojson }};
+    const base = (anomaliesList && anomaliesList.length)
+      ? (sevMap[anomaliesList[0].severity] || 20)
+      : 10;
+
+    const labels = ["T-25","T-20","T-15","T-10","T-5","Now"];
+    const trend  = [base-8, base-4, base+2, base-2, base+6, base]
+      .map(v => Math.max(0, Math.min(100, v)));
+
+    // Chart defaults
+    Chart.defaults.color = "rgba(226,232,240,0.85)";
+    Chart.defaults.borderColor = "rgba(148,163,184,0.10)";
+
+    // ✅ Neon Glow Plugin
+    const neonGlowPlugin = {
+      id: "neonGlow",
+      beforeDatasetsDraw(chart) {
+        const { ctx } = chart;
+        ctx.save();
+        ctx.shadowColor = "rgba(0, 234, 255, 0.9)";
+        ctx.shadowBlur = 18;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      },
+      afterDatasetsDraw(chart) {
+        chart.ctx.restore();
+      }
+    };
+
+    // =========================
+    // ✅ ANOMALY TREND (NEON + REALTIME)
+    // =========================
+    let anomalyChart = null;
+
+    if (anomalyCanvas) {
+      const ctx = anomalyCanvas.getContext("2d");
+
+      anomalyChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Anomaly Score",
+            data: trend,
+            borderColor: "#00eaff",
+            backgroundColor: "rgba(0, 234, 255, 0.15)",
+            borderWidth: 3,
+            tension: 0.4,
+            fill: false,
+            pointRadius: 4,
+            pointBackgroundColor: "transparent",
+            pointBorderColor: "#001f2b",
+            pointBorderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false, // ✅ important so it doesn't collapse
+          animation: { duration: 1600, easing: "easeInOutCubic" },
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              suggestedMin: 0,
+              suggestedMax: 100,
+              ticks: { color: "#cfe9ff" },
+              grid: { color: "rgba(0, 234, 255, 0.08)" }
+            },
+            x: {
+              ticks: { color: "#cfe9ff" },
+              grid: { color: "rgba(0, 234, 255, 0.05)" }
+            }
+          }
+        },
+        plugins: [neonGlowPlugin]
+      });
+    }
+
+    // 🔄 REAL-TIME FLOW (updates every 3 seconds)
+    let lastTs = 0;
+    let score = 0;
+
+    if (anomalyChart) {
+      setInterval(async () => {
+  try {
+    const res = await fetch(`/api/notifications?since=${lastTs}&limit=200`);
+    const data = await res.json();
+
+    if (data.last_ts) lastTs = data.last_ts;
+
+    const newItems = (data.items || []);
+
+    const newAnomalies = newItems.filter(n =>
+      ((n.title || "").toLowerCase().includes("anomaly")) ||
+      ((n.message || "").toLowerCase().includes("anomaly"))
+    ).length;
+
+    // ✅ Only change score if new anomaly detected
+    if (newAnomalies > 0) {
+      score = Math.min(100, score + (newAnomalies * 20));
+    }
+
+    const nowLabel = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+
+    anomalyChart.data.labels.push(nowLabel);
+    anomalyChart.data.datasets[0].data.push(score);
+
+    while (anomalyChart.data.labels.length > 6)
+      anomalyChart.data.labels.shift();
+
+    while (anomalyChart.data.datasets[0].data.length > 6)
+      anomalyChart.data.datasets[0].data.shift();
+
+    anomalyChart.update();
+  } catch (e) {
+    console.log("Realtime update error", e);
+  }
+}, 8000);
+    }
+
+    // =========================
+    // ✅ PROTOCOL BREAKDOWN (BAR)
+    // =========================
+    if (protoCanvas) {
+      const pctx = protoCanvas.getContext("2d");
+
+      new Chart(pctx, {
+        type: "bar",
+        data: {
+          labels: (protoLabels && protoLabels.length) ? protoLabels : ["No Data"],
+          datasets: [{
+            label: "Protocol Count",
+            data: (protoCounts && protoCounts.length) ? protoCounts : [1],
+            backgroundColor: "rgba(0, 234, 255, 0.35)",
+            borderColor: "#00eaff",
+            borderWidth: 2,
+            borderRadius: 10,
+            barThickness: 34
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#cfe9ff" }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { color: "#cfe9ff" }, grid: { color: "rgba(255,255,255,0.06)" } }
+          }
+        },
+        plugins: [neonGlowPlugin]
+      });
+    }
+  });
+</script>
+
+<script>
+  // ===== Toast container =====
+  const toastWrap = document.createElement("div");
+  toastWrap.style.position = "fixed";
+  toastWrap.style.right = "18px";
+  toastWrap.style.bottom = "18px";
+  toastWrap.style.display = "grid";
+  toastWrap.style.gap = "10px";
+  toastWrap.style.zIndex = "9999";
+  document.body.appendChild(toastWrap);
+
+  function showToast(n){
+    const t = document.createElement("div");
+    t.style.border = "1px solid rgba(0,234,255,0.25)";
+    t.style.background = "rgba(0,0,0,0.55)";
+    t.style.backdropFilter = "blur(12px)";
+    t.style.borderRadius = "14px";
+    t.style.padding = "12px 14px";
+    t.style.minWidth = "260px";
+    t.style.maxWidth = "360px";
+    t.style.color = "rgba(235,250,255,0.92)";
+    t.style.boxShadow = "0 0 18px rgba(0,234,255,0.12)";
+    t.style.transform = "translateY(8px)";
+    t.style.opacity = "0";
+    t.style.transition = "all .2s ease";
+
+    const lv = (n.level || "INFO").toUpperCase();
+    t.innerHTML = `
+      <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+        <div style="font-weight:900;">${n.title || "Notification"}</div>
+        <div style="font-size:12px; opacity:.75;">${lv}</div>
+      </div>
+      <div style="margin-top:6px; font-size:13px; opacity:.85;">
+        ${(n.message || "").slice(0,120)}${(n.message||"").length>120?"…":""}
+      </div>
+    `;
+
+    toastWrap.appendChild(t);
+    requestAnimationFrame(()=>{ t.style.opacity="1"; t.style.transform="translateY(0)"; });
+
+    setTimeout(()=>{
+      t.style.opacity="0";
+      t.style.transform="translateY(8px)";
+      setTimeout(()=>t.remove(), 220);
+    }, 4500);
+  }
+
+  // ===== Unseen count badge on bell =====
+  // Try to find your bell icon link (adjust selector if needed)
+  const bellLink = document.querySelector('a[href="/notifications"]') || document.querySelector('#notifBtn');
+  let badgeEl = null;
+
+  function setBadge(count){
+    if (!bellLink) return;
+    if (!badgeEl){
+      badgeEl = document.createElement("span");
+      badgeEl.style.position = "absolute";
+      badgeEl.style.top = "-6px";
+      badgeEl.style.right = "-6px";
+      badgeEl.style.minWidth = "18px";
+      badgeEl.style.height = "18px";
+      badgeEl.style.padding = "0 5px";
+      badgeEl.style.borderRadius = "999px";
+      badgeEl.style.display = "grid";
+      badgeEl.style.placeItems = "center";
+      badgeEl.style.fontSize = "11px";
+      badgeEl.style.fontWeight = "800";
+      badgeEl.style.border = "1px solid rgba(0,234,255,0.35)";
+      badgeEl.style.background = "rgba(0,0,0,0.65)";
+      badgeEl.style.color = "#00eaff";
+      badgeEl.style.boxShadow = "0 0 10px rgba(0,234,255,0.15)";
+      bellLink.style.position = "relative";
+      bellLink.appendChild(badgeEl);
+    }
+    badgeEl.textContent = String(count);
+    badgeEl.style.display = count > 0 ? "grid" : "none";
+  }
+
+  // ===== Poll new notifications in real time =====
+  let lastTs = 0;
+
+  async function pollNotifs(){
+    try{
+      const res = await fetch(`/api/notifications?since=${lastTs}&limit=50`);
+      const data = await res.json();
+
+      // Update badge (needs unseen_count from API)
+      if (typeof data.unseen_count !== "undefined") setBadge(data.unseen_count);
+
+      const items = data.items || [];
+      if (items.length){
+        // show toast for NEW ones only
+        items.forEach(showToast);
+
+        // move cursor
+        lastTs = data.last_ts || lastTs;
+      } else {
+        if (data.last_ts) lastTs = data.last_ts;
+      }
+    }catch(e){}
+  }
+
+  // initial boot: set cursor to latest so we don't spam old notifications
+  (async ()=>{
+    try{
+      const res = await fetch(`/api/notifications?since=0&limit=1`);
+      const data = await res.json();
+      lastTs = data.last_ts || 0;
+      if (typeof data.unseen_count !== "undefined") setBadge(data.unseen_count);
+    }catch(e){}
+    setInterval(pollNotifs, 2000);
+  })();
+</script>
+
+<script>
+  // ===== TOP-RIGHT TOASTS (mobile-like popups) =====
+  const toastWrap = document.createElement("div");
+  toastWrap.style.position = "fixed";
+  toastWrap.style.top = "18px";
+  toastWrap.style.right = "18px";
+  toastWrap.style.display = "grid";
+  toastWrap.style.gap = "10px";
+  toastWrap.style.zIndex = "99999";
+  document.body.appendChild(toastWrap);
+
+  function showToast(n){
+    const t = document.createElement("div");
+    t.style.border = "1px solid rgba(0,234,255,0.30)";
+    t.style.background = "rgba(0,0,0,0.65)";
+    t.style.backdropFilter = "blur(14px)";
+    t.style.borderRadius = "14px";
+    t.style.padding = "12px 14px";
+    t.style.width = "320px";
+    t.style.maxWidth = "calc(100vw - 36px)";
+    t.style.color = "rgba(235,250,255,0.92)";
+    t.style.boxShadow = "0 0 18px rgba(0,234,255,0.15)";
+    t.style.transform = "translateY(-8px)";
+    t.style.opacity = "0";
+    t.style.transition = "all .2s ease";
+
+    const lv = (n.level || "INFO").toUpperCase();
+    const title = (n.title || "Notification");
+    const msg = (n.message || "");
+
+    t.innerHTML = `
+      <div style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
+        <div style="font-weight:900; font-size:14px; line-height:1.2;">${title}</div>
+        <div style="font-size:11px; opacity:.75; border:1px solid rgba(0,234,255,0.2); padding:3px 8px; border-radius:999px;">
+          ${lv}
+        </div>
+      </div>
+      <div style="margin-top:6px; font-size:13px; opacity:.85; line-height:1.35;">
+        ${msg.length > 110 ? msg.slice(0,110) + "…" : msg}
+      </div>
+    `;
+
+    toastWrap.appendChild(t);
+
+    // animate in
+    requestAnimationFrame(()=>{
+      t.style.opacity = "1";
+      t.style.transform = "translateY(0)";
+    });
+
+    // click to open notifications page
+    t.addEventListener("click", ()=>{ window.location.href = "/notifications"; });
+
+    // auto dismiss
+    setTimeout(()=>{
+      t.style.opacity = "0";
+      t.style.transform = "translateY(-8px)";
+      setTimeout(()=> t.remove(), 220);
+    }, 4500);
+  }
+
+  // ===== Poll API for new notifs =====
+  let lastTs = 0;
+
+  async function pollNotifs(){
+    try{
+      const res = await fetch(`/api/notifications?since=${lastTs}&limit=50`);
+      const data = await res.json();
+      const items = data.items || [];
+
+      if (items.length){
+        // show toast for each NEW notification
+        items.forEach(showToast);
+
+        // update cursor
+        lastTs = data.last_ts || lastTs;
+      } else {
+        if (data.last_ts) lastTs = data.last_ts;
+      }
+    }catch(e){}
+  }
+
+  // boot: set lastTs to latest so old ones don't spam
+  (async ()=>{
+    try{
+      const res = await fetch(`/api/notifications?since=0&limit=1`);
+      const data = await res.json();
+      lastTs = data.last_ts || 0;
+    }catch(e){}
+    setInterval(pollNotifs, 2000);
+  })();
+</script>
+
+<script>
+function refreshDashboard(){
+
+    fetch("/api/threats")
+    .then(res => res.json())
+    .then(data => {
+
+        // Example: update threat count
+        const threatBox = document.getElementById("threat-count");
+
+        if(threatBox && data.items){
+            threatBox.innerText = data.items.length;
+        }
+
+    });
+
+}
+
+// refresh every 60 seconds
+setInterval(refreshDashboard, 60000);
+</script>
+
+{% endblock %}

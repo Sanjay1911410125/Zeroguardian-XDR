@@ -1,0 +1,368 @@
+<!DOCT*YPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ZeroGuardian-XDR • Admin Panel</title>
+  <style>
+    :root{
+      --bg0:#06080f;
+      --bg1:#0b1430;
+      --card: rgba(255,255,255,0.06);
+      --stroke: rgba(255,255,255,0.10);
+      --txt: rgba(235,250,255,0.92);
+      --muted: rgba(235,250,255,0.70);
+      --neon:#3ee8ff;
+      --good:#45ffa4;
+      --warn:#ffbf3f;
+      --bad:#ff5b6a;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: radial-gradient(circle at 30% 20%, #142a4f 0%, var(--bg0) 55%);
+      color: var(--txt);
+    }
+    .wrap{ max-width: 1100px; margin: 28px auto; padding: 0 16px; }
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 14px 16px; border:1px solid var(--stroke);
+      background: rgba(0,0,0,0.25); border-radius: 14px;
+      backdrop-filter: blur(10px);
+    }
+    .brand{ font-weight:800; letter-spacing:0.4px; }
+    .brand span{ color: var(--neon); }
+    .acdisplay:flex; gap:10px; align-items:center; }
+    .btn{
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,0.06);
+      color: var(--txt);
+      padding: 10px 12px;
+      border-radius: 12px;
+      text-decoration:none;
+      cursor:pointer;
+      transition: 0.2s;
+      font-weight: 600;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      white-space:nowrap;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(62,232,255,0.35); }
+    .btn.danger:hover{ border-color: rgba(255,91,106,0.55); }
+    .grid{
+      margin-top: 16px;
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+    .card{
+      border:1px solid var(--stroke);
+      background: var(--card);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .kpi-title{ color: var(--muted); font-size: 12px; }
+    .kpi-val{ font-size: 24px; font-weight: 900; margin-top: 6px; }
+    .kpi-badge{
+      display:inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .section{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 14px;
+    }
+    h2{ margin: 0 0 10px; font-size: 16px; }
+    table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 14px;
+      border:1px solid var(--stroke);
+    }
+    th, td{
+      padding: 10px;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      text-align:left;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+    th{ color: var(--muted); font-weight:700; background: rgba(255,255,255,0.03); }
+    tr:last-child td{ border-bottom:none; }
+    .pill{
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      font-size: 12px;
+      display:inline-block;
+    }
+    .pill.admin{ border-color: rgba(62,232,255,0.35); color: var(--neon); }
+    .pill.user{ border-color: rgba(255,255,255,0.18); color: var(--muted); }
+
+    .form{
+      display:grid;
+      gap: 10px;
+    }
+    .field{
+      display:grid;
+      gap: 6px;
+    }
+    label{ font-size: 12px; color: var(--muted); }
+    input, select{
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      background: rgba(0,0,0,0.25);
+      color: var(--txt);
+      outline:none;
+    }
+    .row{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .note{ color: var(--muted); font-size: 12px; line-height: 1.4; }
+
+    .inline{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap: wrap;
+    }-
+    .mini{
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+
+    @media(max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+      .section{ grid-template-columns: 1fr; }
+      .row{ grid-template-columns: 1fr; }
+    }
+/* ===== Neon Top Buttons ===== */
+.navbtn{
+  padding:10px 18px;
+  border-radius:12px;
+  text-decoration:none;
+  font-weight:700;
+  font-size:14px;
+  letter-spacing:.4px;
+  border:1px solid rgba(62,232,255,.35);
+  color:#3ee8ff;
+  background: rgba(62,232,255,.06);
+  box-shadow:0 0 10px rgba(62,232,255,.3);
+  transition:.25s;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.navbtn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 0 18px rgba(62,232,255,.8);
+  border-color:#3ee8ff;
+}
+.navbtn.logout{
+  border-color:rgba(255,91,106,.4);
+  color:#ff5b6a;
+  background:rgba(255,91,106,.06);
+  box-shadow:0 0 10px rgba(255,91,106,.3);
+}
+.navbtn.logout:hover{
+  box-shadow:0 0 18px rgba(255,91,106,.8);
+  border-color:#ff5b6a;
+}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="topbar">
+      <div class="brand">ZeroGuardian-<span>XDR</span> • Admin</div>
+      <div class="actions">
+        <a class="navbtn back" href="/"><- Back to Dashboard</a>
+        <a class="navbtn logout" href="/logout">⏻ Logout</a>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="kpi-title">Total Users</div>
+        <div class="kpi-val">{{ stats.total_users }}</div>
+        <div class="kpi-badge">User registry</div>
+      </div>
+
+      <div class="card">
+        <div class="kpi-title">Active Alerts</div>
+        <div class="kpi-val">{{ stats.active_alerts }}</div>
+        <div class="kpi-badge">SOC queue</div>
+      </div>
+
+      <div class="card">
+        <div class="kpi-title">System Status</div>
+        <div class="kpi-val" style="color: var(--good);">{{ stats.system_status }}</div>
+        <div class="kpi-badge">Agent + dashboard</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="card">
+        <div class="inline" style="justify-content:space-between;">
+          <h2 style="margin:0;">User Management</h2>
+          <button class="navbtn mini" type="button" onclick="toggleCreateUser()">+ Create User</button>
+        </div>
+
+        <div style="height:10px;"></div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in users %}
+            <tr>
+              <td>{{ u.username }}</td>
+              <td>
+                {% if u.role == "admin" %}
+                  <span class="pill admin">admin</span>
+                {% else %}
+                  <span class="pill user">{{ u.role }}</span>
+                {% endif %}
+              </td>
+              <td>{{ u.created }}</td>
+              <td>
+                <div class="inline">
+                    <div id="createUserBox" style="display:none; margin-top:12px;">
+  <form method="POST" action="/admin/create-user" class="form">
+    <div class="row">
+      <div class="field">
+        <label>Username</label>
+        <input name="username" required>
+      </div>
+      <div class="field">
+        <label>Email (optional)</label>
+        <input name="email" type="email">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Password</label>
+        <input name="password" type="password" required>
+      </div>
+      <div class="field">
+        <label>Role</label>
+        <select name="role">
+          <option value="analyst">analyst</option>
+          <option value="viewer">viewer</option>
+          <option value="admin">admin</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="inline">
+      <button class="navbtn mini" type="submit">Create</button>
+      <button class="navbtn logout mini" type="button" onclick="toggleCreateUser()">Cancel</button>
+    </div>
+  </form>
+</div>
+
+                  <!-- Change Role -->
+                  <form method="post" action="/admin/user/role" class="inline">
+                    <input type="hidden" name="username" value="{{ u.username }}">
+                    <select name="role">
+                      <option value="analyst" {% if u.role=="analyst" %}selected{% endif %}>analyst</option>
+                      <option value="viewer" {% if u.role=="viewer" %}selected{% endif %}>viewer</option>
+                      <option value="admin" {% if u.role=="admin" %}selected{% endif %}>admin</option>
+                    </select>
+                    <button class="btn mini" type="submit">Save</button>
+                  </form>
+
+                  <!-- Delete User -->
+                  <form method="post" action="/admin/user/delete" onsubmit="return confirm('Delete user {{ u.username }}?');">
+                    <input type="hidden" name="username" value="{{ u.username }}">
+                    <button class="btn mini danger" type="submit">Delete</button>
+                  </form>
+
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+            <script>
+function toggleCreateUser(){
+  const box = document.getElementById("createUserBox");
+  if(!box) return;
+  box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
+}
+</script>
+          </tbody>
+        </table>
+
+        <div style="height:12px"></div>
+        <div class="note">
+          Admin safety rules applied: cannot delete admin and cannot delete currently logged-in user.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>System Settings</h2>
+        <form class="form" method="post" action="/admin/settings">
+          <div class="row">
+            <div class="field">
+              <label>Risk Threshold (0–100)</label>
+              <input type="number" name="risk_threshold" min="0" max="100" value="{{ settings.risk_threshold }}">
+            </div>
+            <div class="field">
+              <label>Scan Interval (seconds)</label>
+              <input type="number" name="scan_interval_sec" min="5" max="3600" value="{{ settings.scan_interval_sec }}">
+            </div>
+          </div>
+
+          <button class="btn" type="submit">Save Settings</button>
+          <div class="note">
+            Next: implement /admin/settings POST + persist in config/database.
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <h2>Audit Logs</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>User</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in logs %}
+          <tr>
+            <td>{{ l.time }}</td>
+            <td>{{ l.user }}</td>
+            <td>{{ l.action }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div style="height:10px"></div>
+      <div class="note">Next upgrade: store logs in database + show latest 100 entries.</div>
+    </div>
+
+  </div>
+</body>
+</html>
+
+
+

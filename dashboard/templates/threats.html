@@ -1,0 +1,529 @@
+{% extends "base.html" %}
+{% set title="ZeroGuardian-XDR | Threat Console" %}
+{% set header="Threat Console" %}
+
+{% block content %}
+
+<style>
+  :root{
+    --tg-bg: rgba(0,0,0,0.35);
+    --tg-stroke: rgba(255,255,255,0.10);
+    --tg-soft: rgba(255,255,255,0.06);
+    --tg-txt: rgba(235,250,255,0.92);
+    --tg-muted: rgba(235,250,255,0.70);
+    --tg-neon: #00eaff;
+    --tg-red: #ff5b6a;
+    --tg-amber:#ffbf3f;
+    --tg-green:#45ffa4;
+  }
+
+  .tg-wrap{ display:grid; gap:14px; }
+  .tg-top{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
+    padding: 14px; border:1px solid var(--tg-stroke);
+    background: var(--tg-bg); border-radius:16px;
+    backdrop-filter: blur(12px);
+  }
+  .tg-title{ font-weight:900; font-size:18px; letter-spacing:0.2px; color:var(--tg-txt); }
+  .tg-sub{ margin-top:4px; font-size:12px; color:var(--tg-muted); }
+  .tg-actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .tg-chip{
+    border:1px solid rgba(0,234,255,0.25);
+    background: rgba(0,0,0,0.35);
+    color: var(--tg-txt);
+    padding: 8px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .tg-dot{
+    width:8px; height:8px; border-radius:999px; background: var(--tg-green);
+    box-shadow: 0 0 14px rgba(69,255,164,0.35);
+  }
+  .tg-btn{
+    border:1px solid rgba(0,234,255,0.30);
+    background: rgba(0,0,0,0.35);
+    color: var(--tg-txt);
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-weight:800;
+    cursor:pointer;
+    transition: 0.2s;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .tg-btn:hover{ transform: translateY(-1px); box-shadow: 0 0 18px rgba(0,234,255,0.12); }
+
+  .tg-grid4{
+    display:grid; grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .tg-card{
+    border:1px solid var(--tg-stroke);
+    background: var(--tg-soft);
+    border-radius: 16px;
+    padding: 14px;
+  }
+  .tg-k{ color: var(--tg-muted); font-size:12px; }
+  .tg-v{ margin-top: 8px; font-size: 24px; font-weight: 950; letter-spacing:0.2px; }
+  .tg-s{ margin-top: 8px; color: var(--tg-muted); font-size:12px; display:flex; align-items:center; gap:8px; }
+  .tg-badge{
+    padding: 4px 10px; border-radius: 999px;
+    border:1px solid var(--tg-stroke);
+    font-size:11px; font-weight:900; letter-spacing:0.5px;
+  }
+  .tg-b-CRITICAL{ border-color: rgba(255,91,106,0.45); color: var(--tg-red); }
+  .tg-b-HIGH{ border-color: rgba(255,191,63,0.45); color: var(--tg-amber); }
+  .tg-b-MEDIUM{ border-color: rgba(0,234,255,0.35); color: var(--tg-neon); }
+  .tg-b-LOW{ border-color: rgba(69,255,164,0.35); color: var(--tg-green); }
+  .tg-b-INFO{ border-color: rgba(255,255,255,0.18); color: var(--tg-muted); }
+
+  .tg-main{
+    display:grid; grid-template-columns: 1.25fr 0.85fr;
+    gap:14px;
+  }
+
+  .tg-feed{
+    border:1px solid var(--tg-stroke);
+    background: rgba(0,0,0,0.22);
+    border-radius: 16px;
+    overflow:hidden;
+  }
+  .tg-feed-head{
+    padding: 12px 14px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .tg-feed-title{ font-weight:900; color:var(--tg-txt); }
+  .tg-search{
+    width: 320px; max-width: 50vw;
+    padding: 10px 12px; border-radius: 12px;
+    border:1px solid rgba(255,255,255,0.10);
+    background: rgba(0,0,0,0.35);
+    color: var(--tg-txt);
+    outline:none;
+  }
+  .tg-list{ max-height: 520px; overflow:auto; padding: 10px; display:grid; gap:10px; }
+  .tg-item{
+    width:100%;
+    border:1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 12px 12px;
+    text-align:left;
+    cursor:pointer;
+    transition: 0.15s;
+  }
+  .tg-item:hover{ transform: translateY(-1px); border-color: rgba(0,234,255,0.22); }
+  .tg-item-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .tg-item-name{ font-weight:900; color:var(--tg-txt); }
+  .tg-item-sub{ margin-top:6px; color:var(--tg-muted); font-size:12px; line-height:1.35; }
+  .tg-item-meta{ margin-top:8px; display:flex; gap:10px; flex-wrap:wrap; color:var(--tg-muted); font-size:12px; }
+
+  .tg-panel{
+    border:1px solid var(--tg-stroke);
+    background: rgba(0,0,0,0.22);
+    border-radius: 16px;
+    padding: 14px;
+  }
+  .tg-panel-title{ font-weight:900; color:var(--tg-txt); }
+  .tg-panel-sub{ margin-top:4px; color:var(--tg-muted); font-size:12px; }
+  .tg-hr{ height:1px; background: rgba(255,255,255,0.08); margin: 12px 0; }
+  .tg-row{ display:grid; grid-template-columns: 110px 1fr; gap:10px; padding: 7px 0; }
+  .tg-row .k{ color: var(--tg-muted); font-size:12px; }
+  .tg-row .v{ color: var(--tg-txt); font-weight:800; font-size:13px; word-break: break-word; }
+  .tg-pre{
+    white-space: pre-wrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 12px;
+    color: rgba(235,250,255,0.88);
+    background: rgba(0,0,0,0.35);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 10px;
+  }
+
+  .tg-chartbox{
+    margin-top: 12px;
+    border:1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    border-radius: 14px;
+    padding: 10px;
+  }
+  .tg-small{ color: var(--tg-muted); font-size:12px; margin-top:8px; }
+
+  @media(max-width: 980px){
+    .tg-grid4{ grid-template-columns: 1fr 1fr; }
+    .tg-main{ grid-template-columns: 1fr; }
+    .tg-search{ width: 100%; max-width: 100%; }
+  }
+</style>
+
+<div class="tg-wrap">
+
+  <!-- Header -->
+  <div class="tg-top">
+    <div>
+      <div class="tg-title">Threat Console</div>
+      <div class="tg-sub">Industry-style SOC view • Auto refresh every 1 minute • Click any threat to investigate</div>
+    </div>
+
+    <div class="tg-actions">
+      <div class="tg-chip"><span class="tg-dot"></span><span id="tgLiveState">Live</span></div>
+      <div class="tg-chip">Last update: <span id="tgLastUpdate">—</span></div>
+      <button class="tg-btn" id="tgRefreshBtn" type="button">↻ Refresh now</button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="tg-grid4">
+    <div class="tg-card">
+      <div class="tg-k">Active Threats</div>
+      <div class="tg-v" id="kpiActive">0</div>
+      <div class="tg-s"><span class="tg-badge tg-b-INFO">TOTAL</span> last 250 items</div>
+    </div>
+    <div class="tg-card">
+      <div class="tg-k">Critical</div>
+      <div class="tg-v" id="kpiCritical">0</div>
+      <div class="tg-s"><span class="tg-badge tg-b-CRITICAL">CRITICAL</span> highest priority</div>
+    </div>
+    <div class="tg-card">
+      <div class="tg-k">High / Medium</div>
+      <div class="tg-v" id="kpiHM">0</div>
+      <div class="tg-s"><span class="tg-badge tg-b-HIGH">HIGH</span> <span class="tg-badge tg-b-MEDIUM">MEDIUM</span></div>
+    </div>
+    <div class="tg-card">
+      <div class="tg-k">Unique Devices (IPs)</div>
+      <div class="tg-v" id="kpiDevices">0</div>
+      <div class="tg-s">targets involved</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="tg-main">
+
+    <!-- Live Feed -->
+    <div class="tg-feed">
+      <div class="tg-feed-head">
+        <div class="tg-feed-title">Live Threat Feed</div>
+        <input class="tg-search" id="tgSearch" placeholder="Search type / details / ip / severity..." />
+      </div>
+
+      <div class="tg-list" id="tgList">
+        <div class="tg-small">Loading threats…</div>
+      </div>
+    </div>
+
+    <!-- Investigation Panel -->
+    <div class="tg-panel">
+      <div class="tg-panel-title">Threat Investigation</div>
+      <div class="tg-panel-sub" id="tgPickHint">Select an item from the feed to see full details.</div>
+
+      <div class="tg-hr"></div>
+
+      <div class="tg-row"><div class="k">Severity</div><div class="v" id="dSev">—</div></div>
+      <div class="tg-row"><div class="k">Type</div><div class="v" id="dType">—</div></div>
+      <div class="tg-row"><div class="k">Device IP</div><div class="v" id="dIP">—</div></div>
+      <div class="tg-row"><div class="k">Signal</div><div class="v" id="dSignal">—</div></div>
+
+      <div class="tg-hr"></div>
+
+      <div class="tg-k">Details</div>
+      <div class="tg-pre" id="dDetails">—</div>
+
+      <div class="tg-chartbox">
+        <div class="tg-k">Attack Distribution</div>
+        
+        <div style="height:250px; max-width:100%;">
+          <canvas id="tgChart"></canvas>
+        </div>
+ 
+      <div class="tg-small">Chart updates every 5 minutes.</div> 
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+  // ====== SETTINGS ======
+  const REFRESH_MS = 60 * 1000; // 1 minute
+  const CHART_REFRESH_MS = 5 * 60 * 1000; // 5 minutes
+
+  // ====== ELEMENTS ======
+  const elActive = document.getElementById("kpiActive");
+  const elCritical = document.getElementById("kpiCritical");
+  const elHM = document.getElementById("kpiHM");
+  const elDevices = document.getElementById("kpiDevices");
+  const elLastUpdate = document.getElementById("tgLastUpdate");
+  const elList = document.getElementById("tgList");
+  const elSearch = document.getElementById("tgSearch");
+  const btnRefresh = document.getElementById("tgRefreshBtn");
+
+  const dSev = document.getElementById("dSev");
+  const dType = document.getElementById("dType");
+  const dIP = document.getElementById("dIP");
+  const dSignal = document.getElementById("dSignal");
+  const dDetails = document.getElementById("dDetails");
+
+  let rawItems = [];
+  let chartObj = null;
+
+  function safe(x){ return (x === null || x === undefined) ? "" : String(x); }
+
+  function sevBadge(sev){
+    const s = (sev || "INFO").toUpperCase();
+    return `<span class="tg-badge tg-b-${s}">${s}</span>`;
+  }
+
+  function pickIP(a){
+    return a.ip || a.src_ip || a.device_ip || a.host || "unknown";
+  }
+
+  function pickType(a){
+    return a.type || a.attack || a.name || "Threat";
+  }
+
+  function pickDetails(a){
+    return a.details || a.reason || a.description || "";
+  }
+
+  function pickSignal(a){
+    // optional fields depending on your pipeline
+    const score = (a.score !== undefined) ? `score=${a.score}` : "";
+    const model = a.model || a.detector || "";
+    return [model, score].filter(Boolean).join(" • ") || "behavioral anomaly";
+  }
+
+  function renderKPIs(items){
+    const total = items.length;
+    const crit = items.filter(x => (safe(x.severity).toUpperCase() === "CRITICAL")).length;
+    const high = items.filter(x => (safe(x.severity).toUpperCase() === "HIGH")).length;
+    const med  = items.filter(x => (safe(x.severity).toUpperCase() === "MEDIUM")).length;
+
+    const ips = new Set(items.map(pickIP));
+    ips.delete("unknown");
+
+    elActive.textContent = total;
+    elCritical.textContent = crit;
+    elHM.textContent = (high + med);
+    elDevices.textContent = ips.size;
+  }
+
+  function renderList(){
+    const q = (elSearch.value || "").trim().toLowerCase();
+
+    const filtered = rawItems.filter(a => {
+      if(!q) return true;
+      const blob = [
+        pickType(a), pickIP(a), pickDetails(a), safe(a.severity)
+      ].join(" ").toLowerCase();
+      return blob.includes(q);
+    });
+
+    if(!filtered.length){
+      elList.innerHTML = `<div class="tg-small">No threats found.</div>`;
+      return;
+    }
+
+    elList.innerHTML = filtered.slice(0, 250).map((a, idx) => {
+      const sev = (safe(a.severity) || "INFO").toUpperCase();
+      const ip = pickIP(a);
+      const typ = pickType(a);
+      const det = pickDetails(a);
+      const preview = det.length > 90 ? (det.slice(0, 90) + "…") : det;
+
+      return `
+        <button class="tg-item" data-i="${idx}">
+          <div class="tg-item-top">
+            <div class="tg-item-name">${typ}</div>
+            <div>${sevBadge(sev)}</div>
+          </div>
+          <div class="tg-item-sub">${preview || "—"}</div>
+          <div class="tg-item-meta">
+            <span>IP: <b style="color:rgba(235,250,255,0.92)">${ip}</b></span>
+          </div>
+        </button>
+      `;
+    }).join("");
+
+    // wire click events
+    elList.querySelectorAll(".tg-item").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const i = parseInt(btn.getAttribute("data-i"), 10);
+        const a = filtered[i];
+        if(!a) return;
+
+        const sev = (safe(a.severity) || "INFO").toUpperCase();
+        dSev.innerHTML = sevBadge(sev);
+        dType.textContent = pickType(a);
+        dIP.textContent = pickIP(a);
+        dSignal.textContent = pickSignal(a);
+
+        const detailsText = pickDetails(a) || "No additional details.";
+        dDetails.textContent = detailsText;
+      });
+    });
+  }
+
+      // =============================
+  // CHART (CLEAN + GLOW + READABLE)
+  // =============================
+  let lastChartUpdate = 0;
+
+  function buildChartFrom(items){
+    const counts = {};
+    for (const a of items.slice(0, 250)) {
+      const t = pickType(a);
+      counts[t] = (counts[t] || 0) + 1;
+    }
+
+    const pairs = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0, 6);
+    const labels = pairs.map(p => p[0]);
+    const values = pairs.map(p => p[1]);
+
+    if (!labels.length) return { labels: ["No threats"], values: [0] };
+    return { labels, values };
+  }
+
+  function renderChart(items){
+    const canvas = document.getElementById("tgChart");
+    if (!canvas) return;
+
+    if (!window.Chart){
+      canvas.parentElement.innerHTML = `
+        <div class="tg-k">Attack Distribution</div>
+        <div class="tg-pre">Chart.js not loaded.</div>
+      `;
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
+    const { labels, values } = buildChartFrom(items);
+
+    // Neon gradient fill
+    const grad = ctx.createLinearGradient(0, 0, 0, 260);
+    grad.addColorStop(0, "rgba(0, 234, 255, 0.65)");
+    grad.addColorStop(1, "rgba(0, 234, 255, 0.08)");
+
+    // Glow plugin (safe + simple)
+    const neonGlow = {
+      id: "neonGlow",
+      beforeDatasetsDraw(chart) {
+        const { ctx } = chart;
+        ctx.save();
+        ctx.shadowColor = "rgba(0, 234, 255, 0.55)";
+        ctx.shadowBlur = 18;
+      },
+      afterDatasetsDraw(chart) {
+        chart.ctx.restore();
+      }
+    };
+
+    if (chartObj) chartObj.destroy();
+
+    chartObj = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          label: "Detections",
+          data: values,
+          backgroundColor: grad,
+          borderColor: "rgba(0,234,255,0.95)",
+          borderWidth: 2,
+          borderRadius: 12,
+          borderSkipped: false,
+
+          // ✅ makes bars look normal & professional
+          categoryPercentage: 0.70,
+          barPercentage: 0.55
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 650 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "rgba(0,0,0,0.80)",
+            borderColor: "rgba(0,234,255,0.35)",
+            borderWidth: 1,
+            titleColor: "rgba(235,250,255,0.95)",
+            bodyColor: "rgba(235,250,255,0.92)",
+            displayColors: false,
+            padding: 12,
+            callbacks: { label: (c) => ` ${c.parsed.y} detections` }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: "rgba(235,250,255,0.78)",
+              maxRotation: 0,
+              autoSkip: true
+            },
+            grid: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: "rgba(235,250,255,0.70)",
+              precision: 0,
+              stepSize: 1
+            },
+            grid: { color: "rgba(255,255,255,0.06)" }
+          }
+        }
+      },
+      plugins: [neonGlow]
+    });
+  }
+
+  async function refresh(){
+    try{
+      const res = await fetch("/api/threats");
+      const data = await res.json();
+      rawItems = (data.items || []);
+
+      renderKPIs(rawItems);
+      renderList();
+
+      // ✅ chart refresh only every 5 minutes
+      const nowMs = Date.now();
+      if (nowMs - lastChartUpdate >= CHART_REFRESH_MS){
+        renderChart(rawItems);
+        lastChartUpdate = nowMs;
+      }
+
+      const now = new Date();
+      elLastUpdate.textContent = now.toLocaleString();
+    }catch(e){
+      elLastUpdate.textContent = "Error";
+      elList.innerHTML = `<div class="tg-small">Could not load threats. Check /api/threats route.</div>`;
+    }
+  }
+
+  elSearch.addEventListener("input", renderList);
+  btnRefresh.addEventListener("click", () => {
+  console.log("✅ Refresh button clicked");
+  btnRefresh.textContent = "Refreshing...";
+  btnRefresh.disabled = true;
+
+  lastChartUpdate = 0;
+  refresh().finally(() => {
+    btnRefresh.textContent = "↻ Refresh now";
+    btnRefresh.disabled = false;
+  });
+});
+
+  // ✅ first load
+  refresh();
+
+  // ✅ auto refresh feed/KPIs every 1 minute
+  setInterval(refresh, REFRESH_MS);
+</script>
+
+{% endblock %}

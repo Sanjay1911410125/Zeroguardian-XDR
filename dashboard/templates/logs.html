@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+{% set title="ZeroGuardian-XDR | Logs" %}
+{% set header="Logs" %}
+
+{% block content %}
+
+<style>
+  :root{
+    --lg-bg: rgba(0,0,0,0.35);
+    --lg-soft: rgba(255,255,255,0.06);
+    --lg-stroke: rgba(255,255,255,0.10);
+    --lg-txt: rgba(235,250,255,0.92);
+    --lg-muted: rgba(235,250,255,0.70);
+    --lg-neon: #00eaff;
+    --lg-green:#45ffa4;
+    --lg-amber:#ffbf3f;
+    --lg-red:#ff5b6a;
+  }
+
+  .lg-wrap{ display:grid; gap:14px; }
+  .lg-top{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
+    padding: 14px; border:1px solid var(--lg-stroke);
+    background: var(--lg-bg); border-radius:16px;
+    backdrop-filter: blur(12px);
+  }
+  .lg-title{ font-weight:950; font-size:18px; color:var(--lg-txt); }
+  .lg-sub{ margin-top:4px; font-size:12px; color:var(--lg-muted); }
+  .lg-actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .lg-chip{
+    border:1px solid rgba(0,234,255,0.25);
+    background: rgba(0,0,0,0.35);
+    color: var(--lg-txt);
+    padding: 8px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .lg-dot{
+    width:8px; height:8px; border-radius:999px; background: var(--lg-green);
+    box-shadow: 0 0 14px rgba(69,255,164,0.35);
+  }
+  .lg-btn{
+    border:1px solid rgba(0,234,255,0.30);
+    background: rgba(0,0,0,0.35);
+    color: var(--lg-txt);
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-weight:900;
+    cursor:pointer;
+    transition: 0.2s;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .lg-btn:hover{ transform: translateY(-1px); box-shadow: 0 0 18px rgba(0,234,255,0.12); }
+
+  .lg-grid4{ display:grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .lg-card{
+    border:1px solid var(--lg-stroke);
+    background: var(--lg-soft);
+    border-radius: 16px;
+    padding: 14px;
+  }
+  .lg-k{ color: var(--lg-muted); font-size:12px; }
+  .lg-v{ margin-top: 8px; font-size: 24px; font-weight: 950; }
+  .lg-s{ margin-top: 8px; color: var(--lg-muted); font-size:12px; }
+
+  .lg-main{ display:grid; grid-template-columns: 0.75fr 1.25fr; gap:14px; }
+
+  .lg-panel{
+    border:1px solid var(--lg-stroke);
+    background: rgba(0,0,0,0.22);
+    border-radius: 16px;
+    overflow:hidden;
+  }
+  .lg-panel-head{
+    padding: 12px 14px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .lg-panel-title{ font-weight:950; color:var(--lg-txt); }
+  .lg-small{ color: var(--lg-muted); font-size:12px; }
+
+  .lg-proto{ padding: 12px; display:grid; gap:10px; }
+  .lg-proto-row{
+    display:flex; align-items:center; justify-content:space-between;
+    border:1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 12px;
+  }
+  .lg-proto-name{ font-weight:900; color:var(--lg-txt); }
+  .lg-pill{
+    border:1px solid rgba(69,255,164,0.25);
+    color: var(--lg-green);
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight:900;
+    font-size:12px;
+  }
+
+  .lg-table-wrap{ padding: 12px; }
+  .lg-controls{
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    margin-bottom: 10px;
+  }
+  .lg-search, .lg-select{
+    padding: 10px 12px;
+    border-radius: 12px;
+    border:1px solid rgba(255,255,255,0.10);
+    background: rgba(0,0,0,0.35);
+    color: var(--lg-txt);
+    outline:none;
+  }
+  .lg-search{ flex: 1; min-width: 240px; }
+  .lg-select{ min-width: 160px; }
+
+  table{
+    width:100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+  }
+  thead th{
+    text-align:left;
+    font-size:12px;
+    color: var(--lg-muted);
+    font-weight:900;
+    padding: 0 10px;
+  }
+  tbody tr{
+    border:1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.05);
+  }
+  tbody td{
+    padding: 12px 10px;
+    color: var(--lg-txt);
+    font-size: 13px;
+    border-top:1px solid rgba(255,255,255,0.10);
+    border-bottom:1px solid rgba(255,255,255,0.10);
+  }
+  tbody tr td:first-child{
+    border-left:1px solid rgba(255,255,255,0.10);
+    border-top-left-radius: 14px;
+    border-bottom-left-radius: 14px;
+  }
+  tbody tr td:last-child{
+    border-right:1px solid rgba(255,255,255,0.10);
+    border-top-right-radius: 14px;
+    border-bottom-right-radius: 14px;
+  }
+  .lg-tag{
+    padding: 4px 10px; border-radius: 999px;
+    border:1px solid rgba(0,234,255,0.28);
+    color: var(--lg-neon);
+    font-weight:900;
+    font-size:12px;
+    display:inline-block;
+  }
+  .lg-empty{
+    padding: 16px;
+    color: var(--lg-muted);
+    font-size: 13px;
+  }
+
+  @media(max-width: 980px){
+    .lg-grid4{ grid-template-columns: 1fr 1fr; }
+    .lg-main{ grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="lg-wrap">
+
+  <div class="lg-top">
+    <div>
+      <div class="lg-title">Logs</div>
+      <div class="lg-sub">Packet telemetry snapshot + protocol summary + searchable event table • Auto refresh every 1 minute</div>
+    </div>
+    <div class="lg-actions">
+      <div class="lg-chip"><span class="lg-dot"></span><span>Live</span></div>
+      <div class="lg-chip">Last update: <span id="lgLastUpdate">—</span></div>
+      <button class="lg-btn" id="lgRefreshBtn" type="button">↻ Refresh now</button>
+    </div>
+  </div>
+
+  <div class="lg-grid4">
+    <div class="lg-card">
+      <div class="lg-k">Capture Window</div>
+      <div class="lg-v" id="kpiDur">—</div>
+      <div class="lg-s">seconds</div>
+    </div>
+    <div class="lg-card">
+      <div class="lg-k">Packets Captured</div>
+      <div class="lg-v" id="kpiPackets">—</div>
+      <div class="lg-s">observed in latest window</div>
+    </div>
+    <div class="lg-card">
+      <div class="lg-k">Unique IPs</div>
+      <div class="lg-v" id="kpiIPs">—</div>
+      <div class="lg-s">active endpoints</div>
+    </div>
+    <div class="lg-card">
+      <div class="lg-k">Top Protocol</div>
+      <div class="lg-v" id="kpiTopProto">—</div>
+      <div class="lg-s">most frequent</div>
+    </div>
+  </div>
+
+  <div class="lg-main">
+
+    <!-- Protocol panel -->
+    <div class="lg-panel">
+      <div class="lg-panel-head">
+        <div class="lg-panel-title">Top Protocols</div>
+        <div class="lg-small">ranked by count</div>
+      </div>
+      <div class="lg-proto" id="lgProtoList">
+        <div class="lg-empty">Loading protocols…</div>
+      </div>
+    </div>
+
+    <!-- Logs table -->
+    <div class="lg-panel">
+      <div class="lg-panel-head">
+        <div class="lg-panel-title">Live Log Events</div>
+        <div class="lg-small">latest 300 entries</div>
+      </div>
+
+      <div class="lg-table-wrap">
+        <div class="lg-controls">
+          <input class="lg-search" id="lgSearch" placeholder="Search time / src / dst / protocol / port / note..." />
+          <select class="lg-select" id="lgProtoFilter">
+            <option value="ALL">All Protocols</option>
+          </select>
+        </div>
+
+        <div style="overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="min-width:140px;">Time</th>
+                <th style="min-width:140px;">Source</th>
+                <th style="min-width:140px;">Destination</th>
+                <th style="min-width:90px;">Proto</th>
+                <th style="min-width:80px;">Port</th>
+                <th style="min-width:80px;">Len</th>
+                <th style="min-width:220px;">Note</th>
+              </tr>
+            </thead>
+            <tbody id="lgTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="lg-empty" id="lgEmpty" style="display:none;">No log entries found.</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  const REFRESH_MS = 60 * 1000;
+
+  const kpiDur = document.getElementById("kpiDur");
+  const kpiPackets = document.getElementById("kpiPackets");
+  const kpiIPs = document.getElementById("kpiIPs");
+  const kpiTopProto = document.getElementById("kpiTopProto");
+  const lgLastUpdate = document.getElementById("lgLastUpdate");
+
+  const protoList = document.getElementById("lgProtoList");
+  const tableBody = document.getElementById("lgTableBody");
+  const emptyEl = document.getElementById("lgEmpty");
+
+  const searchEl = document.getElementById("lgSearch");
+  const protoFilterEl = document.getElementById("lgProtoFilter");
+  const refreshBtn = document.getElementById("lgRefreshBtn");
+
+  let rawEntries = [];
+  let rawProtocols = {};
+
+  function safe(x){ return (x === null || x === undefined) ? "" : String(x); }
+
+  function normalizeEntry(e){
+    return {
+      time: e.time || e.ts || e.timestamp || "",
+      src: e.src || e.src_ip || e.source || "",
+      dst: e.dst || e.dst_ip || e.dest || "",
+      proto: (e.proto || e.protocol || "UNKNOWN").toUpperCase(),
+      port: e.dport || e.port || e.dst_port || e.sport || "",
+      len: e.len || e.length || "",
+      note: e.note || e.info || e.details || ""
+    };
+  }
+
+  function renderProtocols(protocols){
+    const entries = Object.entries(protocols || {}).sort((a,b)=>b[1]-a[1]).slice(0, 8);
+    if(!entries.length){
+      protoList.innerHTML = `<div class="lg-empty">No protocol data available.</div>`;
+      kpiTopProto.textContent = "—";
+      return;
+    }
+    kpiTopProto.textContent = entries[0][0];
+
+    protoList.innerHTML = entries.map(([name,count]) => `
+      <div class="lg-proto-row">
+        <div class="lg-proto-name">${name}</div>
+        <div class="lg-pill">${count}</div>
+      </div>
+    `).join("");
+  }
+
+  function rebuildProtoFilter(protocols){
+    const keys = Object.keys(protocols || {}).sort();
+    const current = protoFilterEl.value || "ALL";
+    protoFilterEl.innerHTML = `<option value="ALL">All Protocols</option>` + keys.map(p => `<option value="${p}">${p}</option>`).join("");
+    protoFilterEl.value = keys.includes(current) ? current : "ALL";
+  }
+
+  function matches(entry){
+    const q = (searchEl.value || "").trim().toLowerCase();
+    const pf = (protoFilterEl.value || "ALL").toUpperCase();
+
+    if(pf !== "ALL" && entry.proto !== pf) return false;
+    if(!q) return true;
+
+    const blob = [entry.time, entry.src, entry.dst, entry.proto, entry.port, entry.len, entry.note].join(" ").toLowerCase();
+    return blob.includes(q);
+  }
+
+  function renderTable(){
+    const view = rawEntries.map(normalizeEntry).filter(matches);
+
+    if(!view.length){
+      tableBody.innerHTML = "";
+      emptyEl.style.display = "block";
+      return;
+    }
+    emptyEl.style.display = "none";
+
+    tableBody.innerHTML = view.slice(-300).reverse().map(e => `
+      <tr>
+        <td>${safe(e.time)}</td>
+        <td>${safe(e.src)}</td>
+        <td>${safe(e.dst)}</td>
+        <td><span class="lg-tag">${safe(e.proto)}</span></td>
+        <td>${safe(e.port)}</td>
+        <td>${safe(e.len)}</td>
+        <td>${safe(e.note)}</td>
+      </tr>
+    `).join("");
+  }
+
+  async function refresh(){
+    try{
+      const res = await fetch("/api/logs");
+      const data = await res.json();
+
+      kpiDur.textContent = safe(data.duration_sec || "—");
+      kpiPackets.textContent = safe(data.packets || "—");
+      kpiIPs.textContent = safe(data.unique_ips || "—");
+
+      rawProtocols = data.protocols || {};
+      rawEntries = data.entries || [];
+
+      renderProtocols(rawProtocols);
+      rebuildProtoFilter(rawProtocols);
+      renderTable();
+
+      lgLastUpdate.textContent = new Date().toLocaleString();
+    }catch(e){
+      lgLastUpdate.textContent = "Error";
+      protoList.innerHTML = `<div class="lg-empty">Could not load /api/logs</div>`;
+      tableBody.innerHTML = "";
+      emptyEl.style.display = "block";
+    }
+  }
+
+  searchEl.addEventListener("input", renderTable);
+  protoFilterEl.addEventListener("change", renderTable);
+  refreshBtn.addEventListener("click", refresh);
+
+  refresh();
+  setInterval(refresh, REFRESH_MS);
+</script>
+
+{% endblock %}

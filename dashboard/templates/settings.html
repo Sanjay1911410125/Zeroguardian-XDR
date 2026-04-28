@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="zg-page-header">
+  <h1 class="zg-page-title">Alert Settings</h1>
+  <p class="zg-page-sub">Configure notification credentials from the dashboard — no SSH required</p>
+</div>
+
+<div style="max-width:860px; margin:0 auto; padding: 0 1.5rem 3rem;">
+
+  <!-- ── STATUS BANNER ───────────────────────────────────────────────────── -->
+  <div id="status-banner" style="display:none; margin-bottom:1.5rem;
+    padding:1rem 1.5rem; border-radius:10px; font-size:.92rem; font-weight:600;
+    border-left: 4px solid; animation: fadeIn .3s ease;">
+  </div>
+
+  <!-- ── TELEGRAM CARD ──────────────────────────────────────────────────── -->
+  <div class="zg-card" style="margin-bottom:1.5rem;">
+    <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+      <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#229ED9,#1a7fb8);
+        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="white">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.68 7.92c-.12.56-.48.7-.96.44l-2.72-2-1.28 1.24c-.16.16-.28.28-.56.28l.2-2.76 4.96-4.48c.22-.2-.04-.3-.32-.12L7.4 14.24l-2.68-.84c-.58-.18-.6-.58.12-.86l10.44-4.02c.48-.18.9.12.76.68z"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:1.1rem;font-weight:700;color:#e2e8f0;">Telegram Alerts</div>
+        <div style="font-size:.82rem;color:#64748b;">Real-time threat notifications via Telegram bot</div>
+      </div>
+      <div style="margin-left:auto;">
+        <span id="tg-status-badge" class="zg-badge {{ 'badge-green' if telegram_configured else 'badge-gray' }}">
+          {{ '✓ Configured' if telegram_configured else '○ Not set' }}
+        </span>
+      </div>
+    </div>
+
+    <div style="display:grid;gap:1rem;">
+      <div class="zg-form-group">
+        <label class="zg-label">Bot Token</label>
+        <div style="position:relative;">
+          <input type="password" id="tg-token" class="zg-input"
+            placeholder="123456789:ABCDefGhIJKlmNoPQRsTUVwXyz"
+            value="{{ telegram_token_masked }}">
+          <button onclick="toggleVisibility('tg-token', this)"
+            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+            background:none;border:none;color:#64748b;cursor:pointer;font-size:.8rem;">SHOW</button>
+        </div>
+        <div class="zg-hint">Get this from <strong>@BotFather</strong> on Telegram → /newbot</div>
+      </div>
+
+      <div class="zg-form-group">
+        <label class="zg-label">Chat ID</label>
+        <input type="text" id="tg-chatid" class="zg-input"
+          placeholder="987654321"
+          value="{{ telegram_chat_id }}">
+        <div class="zg-hint">Send a message to your bot, then visit api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</div>
+      </div>
+
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+        <button class="zg-btn zg-btn-primary" onclick="saveTelegram()">
+          <span>💾</span> Save Telegram Config
+        </button>
+        <button class="zg-btn zg-btn-secondary" onclick="testTelegram()">
+          <span>🔔</span> Send Test Alert
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EMAIL CARD ─────────────────────────────────────────────────────── -->
+  <div class="zg-card" style="margin-bottom:1.5rem;">
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+      <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#EA4335,#c0392b);
+        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="white">
+          <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:1.1rem;font-weight:700;color:#e2e8f0;">Email Alerts</div>
+        <div style="font-size:.82rem;color:#64748b;">Threat digest reports via SMTP (Gmail recommended)</div>
+      </div>
+      <div style="margin-left:auto;">
+        <span id="email-status-badge" class="zg-badge {{ 'badge-green' if email_configured else 'badge-gray' }}">
+          {{ '✓ Configured' if email_configured else '○ Not set' }}
+        </span>
+      </div>
+    </div>
+
+    <div style="display:grid;gap:1rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="zg-form-group">
+          <label class="zg-label">From Address</label>
+          <input type="email" id="email-from" class="zg-input"
+            placeholder="zeroguardian@gmail.com"
+            value="{{ email_from }}">
+        </div>
+        <div class="zg-form-group">
+          <label class="zg-label">Alert Recipient</label>
+          <input type="email" id="email-to" class="zg-input"
+            placeholder="admin@yourcompany.com"
+            value="{{ email_to }}">
+        </div>
+      </div>
+
+      <div class="zg-form-group">
+        <label class="zg-label">App Password</label>
+        <div style="position:relative;">
+          <input type="password" id="email-pass" class="zg-input"
+            placeholder="16-character Gmail App Password"
+            value="{{ email_pass_masked }}">
+          <button onclick="toggleVisibility('email-pass', this)"
+            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+            background:none;border:none;color:#64748b;cursor:pointer;font-size:.8rem;">SHOW</button>
+        </div>
+        <div class="zg-hint">
+          Gmail: Account → Security → 2-Step Verification → App Passwords
+          <span style="color:#f59e0b;"> (do NOT use your real Gmail password)</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="zg-form-group">
+          <label class="zg-label">SMTP Host</label>
+          <input type="text" id="smtp-host" class="zg-input"
+            placeholder="smtp.gmail.com"
+            value="{{ smtp_host }}">
+        </div>
+        <div class="zg-form-group">
+          <label class="zg-label">SMTP Port</label>
+          <input type="number" id="smtp-port" class="zg-input"
+            placeholder="587"
+            value="{{ smtp_port }}">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+        <button class="zg-btn zg-btn-primary" onclick="saveEmail()">
+          <span>💾</span> Save Email Config
+        </button>
+        <button class="zg-btn zg-btn-secondary" onclick="testEmail()">
+          <span>📧</span> Send Test Email
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ALERT THRESHOLDS CARD ──────────────────────────────────────────── -->
+  <div class="zg-card" style="margin-bottom:1.5rem;">
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+      <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#f59e0b,#d97706);
+        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="white">
+          <path d="M12 2l10 18H2L12 2zm0 3.5L4.5 18h15L12 5.5zM11 10h2v4h-2zm0 6h2v2h-2z"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:1.1rem;font-weight:700;color:#e2e8f0;">Alert Thresholds</div>
+        <div style="font-size:.82rem;color:#64748b;">Minimum severity level to trigger notifications</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div class="zg-form-group">
+        <label class="zg-label">Telegram — Minimum Severity</label>
+        <select id="tg-threshold" class="zg-input">
+          <option value="LOW"      {{ 'selected' if tg_threshold=='LOW' }}>LOW and above</option>
+          <option value="MEDIUM"   {{ 'selected' if tg_threshold=='MEDIUM' }}>MEDIUM and above</option>
+          <option value="HIGH"     {{ 'selected' if tg_threshold=='HIGH' }}>HIGH and above</option>
+          <option value="CRITICAL" {{ 'selected' if tg_threshold=='CRITICAL' }}>CRITICAL only</option>
+        </select>
+      </div>
+      <div class="zg-form-group">
+        <label class="zg-label">Email — Minimum Severity</label>
+        <select id="email-threshold" class="zg-input">
+          <option value="LOW"      {{ 'selected' if email_threshold=='LOW' }}>LOW and above</option>
+          <option value="MEDIUM"   {{ 'selected' if email_threshold=='MEDIUM' }}>MEDIUM and above</option>
+          <option value="HIGH"     {{ 'selected' if email_threshold=='HIGH' }}>HIGH and above</option>
+          <option value="CRITICAL" {{ 'selected' if email_threshold=='CRITICAL' }}>CRITICAL only</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.75rem;margin-top:.5rem;">
+      <button class="zg-btn zg-btn-primary" onclick="saveThresholds()">
+        <span>💾</span> Save Thresholds
+      </button>
+    </div>
+  </div>
+
+  <!-- ── HOW TO GET TELEGRAM CREDENTIALS ───────────────────────────────── -->
+  <div class="zg-card" style="background:rgba(34,158,217,.05);border:1px solid rgba(34,158,217,.2);">
+    <div style="font-size:.95rem;font-weight:700;color:#38bdf8;margin-bottom:1rem;">
+      📖 How to get Telegram credentials
+    </div>
+    <div style="display:grid;gap:.6rem;font-size:.85rem;color:#94a3b8;line-height:1.6;">
+      <div><span style="color:#38bdf8;font-weight:600;">Step 1</span> — Open Telegram and search for <strong style="color:#e2e8f0;">@BotFather</strong></div>
+      <div><span style="color:#38bdf8;font-weight:600;">Step 2</span> — Send <code style="background:rgba(255,255,255,.08);padding:1px 6px;border-radius:4px;">/newbot</code> and follow the prompts to create your bot</div>
+      <div><span style="color:#38bdf8;font-weight:600;">Step 3</span> — Copy the <strong style="color:#e2e8f0;">Bot Token</strong> BotFather gives you and paste it above</div>
+      <div><span style="color:#38bdf8;font-weight:600;">Step 4</span> — Search for your new bot in Telegram and send it any message</div>
+      <div><span style="color:#38bdf8;font-weight:600;">Step 5</span> — Visit <code style="background:rgba(255,255,255,.08);padding:1px 6px;border-radius:4px;">api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code> in your browser</div>
+      <div><span style="color:#38bdf8;font-weight:600;">Step 6</span> — Find <code style="background:rgba(255,255,255,.08);padding:1px 6px;border-radius:4px;">"chat":{"id": 123456}</code> — that number is your <strong style="color:#e2e8f0;">Chat ID</strong></div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.zg-page-header {
+  padding: 2rem 3rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  margin-bottom: 2rem;
+}
+.zg-page-title { font-size:1.6rem; font-weight:700; color:#e2e8f0; margin:0 0 .3rem; }
+.zg-page-sub   { font-size:.88rem; color:#64748b; margin:0; }
+
+.zg-card {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  padding: 1.75rem;
+}
+
+.zg-form-group { display:flex; flex-direction:column; gap:.5rem; }
+.zg-label      { font-size:.78rem; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:.06em; }
+.zg-hint       { font-size:.76rem; color:#475569; line-height:1.5; }
+
+.zg-input {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px;
+  padding: .65rem 1rem;
+  color: #e2e8f0;
+  font-size: .88rem;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color .2s;
+}
+.zg-input:focus {
+  outline: none;
+  border-color: #38bdf8;
+  background: rgba(56,189,248,.06);
+}
+select.zg-input { cursor:pointer; }
+
+.zg-btn {
+  display: inline-flex; align-items:center; gap:.5rem;
+  padding: .6rem 1.25rem; border-radius:8px; border:none;
+  font-size:.85rem; font-weight:600; cursor:pointer;
+  transition: all .2s;
+}
+.zg-btn-primary {
+  background: linear-gradient(135deg,#0ea5e9,#0284c7);
+  color: white;
+}
+.zg-btn-primary:hover { background: linear-gradient(135deg,#38bdf8,#0ea5e9); transform:translateY(-1px); }
+.zg-btn-secondary {
+  background: rgba(255,255,255,.08);
+  color: #cbd5e1;
+  border: 1px solid rgba(255,255,255,.12);
+}
+.zg-btn-secondary:hover { background:rgba(255,255,255,.12); }
+.zg-btn:disabled { opacity:.5; cursor:not-allowed; transform:none !important; }
+
+.zg-badge { padding:.3rem .75rem; border-radius:20px; font-size:.75rem; font-weight:600; }
+.badge-green { background:rgba(34,197,94,.15); color:#22c55e; border:1px solid rgba(34,197,94,.3); }
+.badge-gray  { background:rgba(100,116,139,.15); color:#94a3b8; border:1px solid rgba(100,116,139,.3); }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+</style>
+
+<script>
+function toggleVisibility(id, btn) {
+  const el = document.getElementById(id);
+  if (el.type === 'password') { el.type = 'text';  btn.textContent = 'HIDE'; }
+  else                         { el.type = 'password'; btn.textContent = 'SHOW'; }
+}
+
+function showBanner(msg, type) {
+  const b = document.getElementById('status-banner');
+  const styles = {
+    success: { bg: 'rgba(34,197,94,.1)',  border: '#22c55e', color: '#22c55e' },
+    error:   { bg: 'rgba(239,68,68,.1)',  border: '#ef4444', color: '#ef4444' },
+    info:    { bg: 'rgba(56,189,248,.1)', border: '#38bdf8', color: '#38bdf8' },
+  };
+  const s = styles[type] || styles.info;
+  b.style.display      = 'block';
+  b.style.background   = s.bg;
+  b.style.borderColor  = s.border;
+  b.style.color        = s.color;
+  b.textContent        = msg;
+  setTimeout(() => { b.style.display = 'none'; }, 6000);
+}
+
+function setLoading(btn, loading) {
+  btn.disabled = loading;
+  btn.style.opacity = loading ? '.6' : '1';
+}
+
+async function apiCall(url, body) {
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return await r.json();
+}
+
+async function saveTelegram() {
+  const btn = event.target;
+  setLoading(btn, true);
+  try {
+    const r = await apiCall('/api/settings/telegram/save', {
+      token:   document.getElementById('tg-token').value,
+      chat_id: document.getElementById('tg-chatid').value,
+    });
+    if (r.success) {
+      showBanner('✅ Telegram credentials saved successfully', 'success');
+      document.getElementById('tg-status-badge').textContent = '✓ Configured';
+      document.getElementById('tg-status-badge').className = 'zg-badge badge-green';
+    } else {
+      showBanner('❌ Save failed: ' + r.error, 'error');
+    }
+  } catch(e) { showBanner('❌ Request failed: ' + e, 'error'); }
+  setLoading(btn, false);
+}
+
+async function testTelegram() {
+  const btn = event.target;
+  setLoading(btn, true);
+  showBanner('🔔 Sending test alert to Telegram...', 'info');
+  try {
+    const r = await apiCall('/api/settings/telegram/test', {
+      token:   document.getElementById('tg-token').value,
+      chat_id: document.getElementById('tg-chatid').value,
+    });
+    if (r.success) showBanner('✅ Test alert sent! Check your Telegram.', 'success');
+    else           showBanner('❌ Test failed: ' + r.error, 'error');
+  } catch(e) { showBanner('❌ Request failed: ' + e, 'error'); }
+  setLoading(btn, false);
+}
+
+async function saveEmail() {
+  const btn = event.target;
+  setLoading(btn, true);
+  try {
+    const r = await apiCall('/api/settings/email/save', {
+      from_addr: document.getElementById('email-from').value,
+      password:  document.getElementById('email-pass').value,
+      to_addr:   document.getElementById('email-to').value,
+      smtp_host: document.getElementById('smtp-host').value,
+      smtp_port: document.getElementById('smtp-port').value,
+    });
+    if (r.success) {
+      showBanner('✅ Email credentials saved successfully', 'success');
+      document.getElementById('email-status-badge').textContent = '✓ Configured';
+      document.getElementById('email-status-badge').className = 'zg-badge badge-green';
+    } else {
+      showBanner('❌ Save failed: ' + r.error, 'error');
+    }
+  } catch(e) { showBanner('❌ Request failed: ' + e, 'error'); }
+  setLoading(btn, false);
+}
+
+async function testEmail() {
+  const btn = event.target;
+  setLoading(btn, true);
+  showBanner('📧 Sending test email...', 'info');
+  try {
+    const r = await apiCall('/api/settings/email/test', {
+      from_addr: document.getElementById('email-from').value,
+      password:  document.getElementById('email-pass').value,
+      to_addr:   document.getElementById('email-to').value,
+      smtp_host: document.getElementById('smtp-host').value,
+      smtp_port: document.getElementById('smtp-port').value,
+    });
+    if (r.success) showBanner('✅ Test email sent! Check your inbox.', 'success');
+    else           showBanner('❌ Email failed: ' + r.error, 'error');
+  } catch(e) { showBanner('❌ Request failed: ' + e, 'error'); }
+  setLoading(btn, false);
+}
+
+async function saveThresholds() {
+  const btn = event.target;
+  setLoading(btn, true);
+  try {
+    const r = await apiCall('/api/settings/thresholds/save', {
+      telegram_threshold: document.getElementById('tg-threshold').value,
+      email_threshold:    document.getElementById('email-threshold').value,
+    });
+    if (r.success) showBanner('✅ Alert thresholds saved', 'success');
+    else           showBanner('❌ Save failed: ' + r.error, 'error');
+  } catch(e) { showBanner('❌ Request failed: ' + e, 'error'); }
+  setLoading(btn, false);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,187 @@
+{
+  "history": [
+    {
+      "ts": "1770646554",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770646670",
+      "overall_score": 1,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770646683",
+      "overall_score": 1,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770646704",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770646705",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770646708",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770646710",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770646730",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770646754",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770646815",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770646880",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770646902",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770646902",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770646964",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770647011",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770647408",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770647537",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770647660",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770648891",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    },
+    {
+      "ts": "1770648947",
+      "overall_score": 0,
+      "overall_level": "LOW",
+      "high_count": 0,
+      "medium_count": 0
+    }
+  ],
+  "latest": {
+    "172.24.192.77": {
+      "ip": "172.24.192.77",
+      "state": "self",
+      "score": 0,
+      "level": "LOW",
+      "reasons": [
+        "High traffic volume (1 pkts) +3",
+        "Local host (lowered baseline) -5"
+      ],
+      "updated_ts": 1770648947
+    },
+    "172.24.192.76": {
+      "ip": "172.24.192.76",
+      "state": "observed",
+      "score": 0,
+      "level": "LOW",
+      "reasons": [
+        "Normal behavior observed (baseline)"
+      ],
+      "updated_ts": 1770648947
+    },
+    "172.24.192.207": {
+      "ip": "172.24.192.207",
+      "state": "observed",
+      "score": 3,
+      "level": "LOW",
+      "reasons": [
+        "High traffic volume (1 pkts) +3"
+      ],
+      "updated_ts": 1770648947
+    },
+    "fe80::475:2dff:fe60:2663": {
+      "ip": "fe80::475:2dff:fe60:2663",
+      "state": "observed",
+      "score": 0,
+      "level": "LOW",
+      "reasons": [
+        "Normal behavior observed (baseline)"
+      ],
+      "updated_ts": 1770648947
+    }
+  }
+}
